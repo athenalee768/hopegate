@@ -1219,8 +1219,17 @@ if (!PREVIEW && CFG.supabaseUrl && CFG.supabaseAnonKey) {
       form.hidden = true; ok.hidden = false;
       document.getElementById('signup').scrollIntoView({behavior:'smooth'});
     };
-    document.getElementById('gf-sink').addEventListener('load', finish, {once:true});
-    setTimeout(finish, 6000);
+    let gfDone = false, dbDone = !(CFG.supabaseUrl && CFG.supabaseAnonKey);
+    const tryFinish = () => { if (gfDone && dbDone) finish(); };
+    document.getElementById('gf-sink').addEventListener('load', () => { gfDone = true; tryFinish(); }, {once:true});
+    setTimeout(finish, 7000);
+    if (!dbDone) {
+      const row = { name:data.name, phone:data.phone, line:data.line, email:data.email, city:data.city, age:data.age, status:data.status, level:data.level, topics:data.topics.join('、'), hope:data.hope };
+      const h = { apikey:CFG.supabaseAnonKey, 'Content-Type':'application/json', Prefer:'return=minimal' };
+      if (/^eyJ/.test(CFG.supabaseAnonKey)) h.Authorization = 'Bearer ' + CFG.supabaseAnonKey;
+      fetch(CFG.supabaseUrl.replace(/\/$/,'') + '/rest/v1/hg_signups', { method:'POST', headers:h, body:JSON.stringify(row), keepalive:true })
+        .catch(() => {}).finally(() => { dbDone = true; tryFinish(); });
+    }
     out.submit();
   });
   document.getElementById('again').onclick = () => { form.reset(); ok.hidden = true; form.hidden = false; };

@@ -108,6 +108,12 @@ header.top .wrap{display:flex;align-items:center;justify-content:space-between;g
 .ph select{padding:5px 8px;border-radius:8px;border:1px solid var(--line);font-size:13.5px}
 
 /* toast */
+.tbl-wrap{overflow-x:auto;border:1px solid var(--line);border-radius:14px}
+table.su{border-collapse:collapse;width:100%;min-width:1100px;font-size:14.5px}
+table.su th,table.su td{padding:10px 12px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+table.su th{background:var(--blue-wash);color:var(--navy);font-weight:700;white-space:nowrap;position:sticky;top:0}
+table.su td{font-variant-numeric:tabular-nums}
+table.su td.hope{max-width:260px;white-space:pre-line}
 .toast{position:fixed;left:50%;bottom:calc(24px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--navy);color:#fff;padding:12px 22px;border-radius:999px;font-weight:500;box-shadow:0 14px 40px -12px rgba(0,0,0,.4);z-index:50;max-width:calc(100% - 32px);text-align:center}
 .toast.bad{background:var(--err)}
 .setup{max-width:640px;margin:60px auto;padding:30px;background:#fff;border-radius:20px;display:grid;gap:12px}
@@ -147,13 +153,27 @@ header.top .wrap{display:flex;align-items:center;justify-content:space-between;g
 
   <div class="wrap">
     <div class="tabs" role="tablist">
-      <button type="button" role="tab" aria-selected="true" data-tab="courses">課程與活動</button>
+      <button type="button" role="tab" aria-selected="true" data-tab="signups">報名名單</button>
+      <button type="button" role="tab" aria-selected="false" data-tab="courses">課程與活動</button>
       <button type="button" role="tab" aria-selected="false" data-tab="photos">活動花絮</button>
       <button type="button" role="tab" aria-selected="false" data-tab="settings">網站設定</button>
     </div>
 
+    <!-- 報名名單 -->
+    <section class="panel" id="tab-signups">
+      <div class="panel-head">
+        <div><h2>報名名單 <span id="suCount" class="tag"></span></h2><p>網站說明會報名表送出的資料，會同時存一份在這裡（Google 表單也會收到一份）。</p></div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <button class="btn btn-ghost btn-sm" type="button" id="suReload">重新整理</button>
+          <button class="btn btn-gold btn-sm" type="button" id="suCsv">下載 Excel 檔（CSV）</button>
+        </div>
+      </div>
+      <div class="tbl-wrap"><table class="su"><thead><tr><th>送出時間</th><th>姓名</th><th>電話</th><th>LINE</th><th>Email</th><th>縣市</th><th>年齡</th><th>狀態</th><th>AI 程度</th><th>想學</th><th>期待</th><th></th></tr></thead><tbody id="suRows"></tbody></table></div>
+      <p class="empty" id="suEmpty" hidden>目前還沒有報名資料。</p>
+    </section>
+
     <!-- 課程 -->
-    <section class="panel" id="tab-courses">
+    <section class="panel" id="tab-courses" hidden>
       <div id="courseListView">
         <div class="panel-head">
           <div><h2>課程與活動</h2><p>這裡的課程會顯示在網站「近期課程與活動」區塊，數字越小排越前面。</p></div>
@@ -298,7 +318,7 @@ async function boot(){
   }
   $('who').textContent = data.session.user.email;
   $('loginView').hidden = true; $('appView').hidden = false;
-  loadCourses(); loadPhotos(); loadSettings();
+  loadSignups(); loadCourses(); loadPhotos(); loadSettings();
 }
 $('loginForm').addEventListener('submit', async e => {
   e.preventDefault();
@@ -316,8 +336,42 @@ $('logoutBtn').addEventListener('click', async () => { await db.auth.signOut(); 
 /* ===== 分頁 ===== */
 document.querySelectorAll('.tabs button').forEach(b => b.addEventListener('click', () => {
   document.querySelectorAll('.tabs button').forEach(x => x.setAttribute('aria-selected', x === b));
-  ['courses','photos','settings'].forEach(t => $('tab-' + t).hidden = t !== b.dataset.tab);
+  ['signups','courses','photos','settings'].forEach(t => $('tab-' + t).hidden = t !== b.dataset.tab);
 }));
+
+
+/* ===== 報名名單 ===== */
+let signups = [];
+const fmtTime = t => { try { return new Date(t).toLocaleString('zh-TW', { hour12:false }); } catch(e) { return t; } };
+async function loadSignups(){
+  const { data, error } = await db.from('hg_signups').select('*').order('created_at', { ascending:false });
+  if (error) { $('suRows').textContent = ''; $('suEmpty').hidden = false; $('suEmpty').textContent = /relation|does not exist|schema cache/i.test(error.message) ? '報名名單資料表尚未建立，請先在 Supabase 執行 signups.sql。' : errText(error); return; }
+  signups = data || []; renderSignups();
+}
+function renderSignups(){
+  const tb = $('suRows'); tb.textContent = '';
+  $('suCount').textContent = '共 ' + signups.length + ' 筆';
+  $('suEmpty').hidden = signups.length > 0; $('suEmpty').textContent = '目前還沒有報名資料。';
+  signups.forEach(r => {
+    const tr = el('tr');
+    [fmtTime(r.created_at), r.name, r.phone, r.line, r.email, r.city, r.age, r.status, r.level, r.topics].forEach(v => tr.appendChild(el('td', '', v || '—')));
+    tr.appendChild(el('td', 'hope', r.hope || '—'));
+    const td = el('td'); const del = el('button', 'btn btn-danger btn-sm', '刪除'); del.type = 'button';
+    armDelete(del, async () => { const { error } = await db.from('hg_signups').delete().eq('id', r.id); if (error) { toast(errText(error), true); return; } toast('已刪除'); loadSignups(); });
+    td.appendChild(del); tr.appendChild(td); tb.appendChild(tr);
+  });
+}
+$('suReload').onclick = () => { loadSignups(); toast('已更新名單'); };
+$('suCsv').onclick = () => {
+  if (!signups.length) { toast('目前沒有資料可以下載', true); return; }
+  const head = ['送出時間','姓名','電話','LINE','Email','縣市','年齡','狀態','AI 程度','想學','期待'];
+  const q = v => '"' + String(v == null ? '' : v).replace(/"/g, '""') + '"';
+  const lines = [head.map(q).join(',')].concat(signups.map(r => [fmtTime(r.created_at), r.name, r.phone, r.line, r.email, r.city, r.age, r.status, r.level, r.topics, r.hope].map(q).join(',')));
+  const blob = new Blob(['\ufeff' + lines.join('\r\n')], { type:'text/csv;charset=utf-8' });
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
+  a.download = '希望之門報名名單_' + new Date().toISOString().slice(0,10) + '.csv';
+  document.body.appendChild(a); a.click(); setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 500);
+};
 
 /* ===== 課程 ===== */
 let courses = [], editing = null, pendingFile = null, imgUrl = '';
