@@ -499,6 +499,14 @@ form.card{max-width:920px;margin:0 auto;padding:46px 50px}
 .gform li b{color:var(--navy);margin-right:8px}
 @media(max-width:720px){form.card{padding:30px 20px}.grid2{grid-template-columns:1fr}.success,.gform{padding:40px 22px}.signup-photo{aspect-ratio:16/9}}
 
+.music-btn{position:fixed;right:18px;bottom:calc(18px + env(safe-area-inset-bottom,0px));z-index:70;display:inline-flex;align-items:center;gap:8px;padding:12px 20px;border-radius:999px;border:0;cursor:pointer;font:inherit;font-size:17px;font-weight:700;color:#fff;background:linear-gradient(135deg,#4a8fd6,#1f5fa8);box-shadow:0 12px 28px -10px rgba(31,95,168,.8)}
+.music-btn .note{display:inline-block}
+.music-btn[aria-pressed="true"]{background:linear-gradient(135deg,#ffd257,#f2b929);color:#3b2a00}
+.music-btn[aria-pressed="true"] .note{animation:notebob 1s ease-in-out infinite}
+@keyframes notebob{50%{transform:translateY(-3px) rotate(-10deg)}}
+.music-box{position:fixed;right:18px;bottom:calc(76px + env(safe-area-inset-bottom,0px));z-index:70;width:260px;border-radius:16px;overflow:hidden;background:#000;box-shadow:0 18px 40px -14px rgba(0,0,0,.6);border:3px solid #fff}
+.music-box iframe{display:block;width:100%;aspect-ratio:16/9;border:0}
+@media(max-width:480px){.music-btn{right:12px;padding:10px 16px;font-size:15px}.music-box{right:12px;width:200px;bottom:calc(66px + env(safe-area-inset-bottom,0px))}}
 /* FOOTER */
 footer{position:relative;padding:120px 0 40px;text-align:center;background:linear-gradient(180deg,var(--sky-50),#cfe5fa 60%,#b5d6f5)}
 footer .quote{font-family:'Great Vibes','Brush Script MT',cursive;font-size:clamp(42px,5.6vw,80px);font-weight:400;color:var(--navy);line-height:1.25}
@@ -1040,7 +1048,9 @@ footer .copy{margin-top:36px;font-size:16px;color:var(--muted)}
   </div>
 </footer>
 
-<iframe name="gf-sink" id="gf-sink" title="報名送出" hidden></iframe>
+
+<button type="button" class="music-btn" id="musicBtn" aria-pressed="false" hidden><span class="note" aria-hidden="true">♪</span><span id="musicLabel">播放音樂</span></button>
+<div class="music-box" id="musicBox" hidden></div>
 
 <script src="config.js"></script>
 <script>
@@ -1088,6 +1098,25 @@ if ('IntersectionObserver' in window) {
   io = new IntersectionObserver(es => es.forEach(e => { if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); } }), {threshold:.1});
 }
 observe(document.querySelectorAll('.fade,.reveal'));
+
+
+/* ===== 背景音樂（YouTube，可在後台「網站設定」更換） ===== */
+const DEFAULT_MUSIC = 'https://youtu.be/KIunwCFWDUE';
+function ytId(u){ const m = String(u||'').match(/(?:youtu\.be\/|v=|embed\/|shorts\/)([A-Za-z0-9_-]{11})/); return m ? m[1] : ''; }
+function setupMusic(url){
+  const id = ytId(url), btn = document.getElementById('musicBtn'), box = document.getElementById('musicBox'), label = document.getElementById('musicLabel');
+  if (!id || PREVIEW) { btn.hidden = true; return; }
+  btn.hidden = false;
+  btn.onclick = () => {
+    const on = btn.getAttribute('aria-pressed') === 'true';
+    if (on) { box.textContent = ''; box.hidden = true; btn.setAttribute('aria-pressed','false'); label.textContent = '播放音樂'; return; }
+    const f = document.createElement('iframe');
+    f.src = 'https://www.youtube.com/embed/' + id + '?autoplay=1&loop=1&playlist=' + id + '&playsinline=1&rel=0';
+    f.title = '背景音樂'; f.allow = 'autoplay; encrypted-media'; f.loading = 'eager';
+    box.textContent = ''; box.appendChild(f); box.hidden = false;
+    btn.setAttribute('aria-pressed','true'); label.textContent = '關閉音樂';
+  };
+}
 
 /* ===== 後台資料（Supabase） ===== */
 const PROGRAM = { women:{label:'婦女 AI 培訓', c:'var(--women)'}, family:{label:'親子友愛', c:'var(--family)'}, kids:{label:'兒童潛能', c:'var(--kids)'}, other:{label:'協會活動', c:'var(--sky-700)'} };
@@ -1160,6 +1189,7 @@ function applySettings(rows){
     a.hidden = false;
   }
   if (s.contact_email) document.querySelectorAll('[data-set="contact_email"]').forEach(n => n.textContent = s.contact_email);
+  if ('music_url' in s) setupMusic(s.music_url);
   const line = safeUrl(s.line_url || '');
   if (line) { const b = document.getElementById('lineBtn'); b.href = line; b.hidden = false; }
 }
@@ -1171,11 +1201,13 @@ document.getElementById('filters').addEventListener('click', e => {
   document.querySelectorAll('#courseList .course').forEach(c => c.hidden = f !== 'all' && c.dataset.p !== f);
 });
 
+let musicSet = false;
+const _setupMusic = setupMusic; setupMusic = u => { musicSet = true; _setupMusic(u); };
 if (!PREVIEW && CFG.supabaseUrl && CFG.supabaseAnonKey) {
   sb('hg_courses', 'select=*&published=eq.true&order=sort.asc,created_at.desc').then(renderCourses).catch(() => {});
   sb('hg_photos', 'select=*&published=eq.true&order=sort.asc,created_at.desc').then(renderGallery).catch(() => {});
-  sb('hg_settings', 'select=key,value').then(applySettings).catch(() => {});
-}
+  sb('hg_settings', 'select=key,value').then(applySettings).catch(() => {}).finally(() => { if (!musicSet) setupMusic(DEFAULT_MUSIC); });
+} else { setupMusic(DEFAULT_MUSIC); }
 
 /* ===== 婦女 AI 報名表 → Google 表單 ===== */
 (function(){
@@ -1203,34 +1235,31 @@ if (!PREVIEW && CFG.supabaseUrl && CFG.supabaseAnonKey) {
     checks.forEach(([q, good, msg]) => { setErr(q, good ? '' : msg); if (!good && !first) first = q; });
     if (first) { const x = box(first).querySelector('input,select'); x && x.focus(); box(first).scrollIntoView({block:'center', behavior:'smooth'}); return; }
     const data = { name:v('name'), phone:v('phone'), line:v('line'), email:v('email'), city:v('city'), age:picked('age'), status:picked('status'), level:picked('level'), hope:v('hope'), topics:[...form.querySelectorAll('input[name="topics"]:checked')].map(i => i.value) };
-    const out = document.createElement('form');
-    out.method = 'POST'; out.target = 'gf-sink'; out.hidden = true;
-    out.action = 'https://docs.google.com/forms/d/e/' + GFORM.id + '/formResponse';
-    const add = (k, val) => { if (!E[k] || val === '') return; const i = document.createElement('input'); i.type = 'hidden'; i.name = 'entry.' + E[k]; i.value = val; out.appendChild(i); };
+    const params = new URLSearchParams();
+    const add = (k, val) => { if (!E[k] || val === '') return; params.append('entry.' + E[k], val); };
     Object.keys(data).forEach(k => Array.isArray(data[k]) ? data[k].forEach(t => add(k, t)) : add(k, data[k]));
-    document.body.appendChild(out);
     const btn = document.getElementById('submitBtn');
     btn.disabled = true; btn.textContent = '送出中…';
     let done = false;
     const finish = () => {
       if (done) return; done = true;
-      out.remove(); btn.disabled = false; btn.textContent = '送出說明會報名';
+      btn.disabled = false; btn.textContent = '送出說明會報名';
       document.getElementById('success-title').textContent = data.name + '，說明會報名成功！';
       form.hidden = true; ok.hidden = false;
       document.getElementById('signup').scrollIntoView({behavior:'smooth'});
     };
-    let gfDone = false, dbDone = !(CFG.supabaseUrl && CFG.supabaseAnonKey);
-    const tryFinish = () => { if (gfDone && dbDone) finish(); };
-    document.getElementById('gf-sink').addEventListener('load', () => { gfDone = true; tryFinish(); }, {once:true});
-    setTimeout(finish, 7000);
-    if (!dbDone) {
+    const gfUrl = 'https://docs.google.com/forms/d/e/' + GFORM.id + '/formResponse';
+    const sendGF = fetch(gfUrl, { method:'POST', mode:'no-cors', body:params, keepalive:true })
+      .catch(() => { try { navigator.sendBeacon && navigator.sendBeacon(gfUrl, params); } catch(e) {} });
+    let sendDB = Promise.resolve();
+    if (CFG.supabaseUrl && CFG.supabaseAnonKey) {
       const row = { name:data.name, phone:data.phone, line:data.line, email:data.email, city:data.city, age:data.age, status:data.status, level:data.level, topics:data.topics.join('、'), hope:data.hope };
       const h = { apikey:CFG.supabaseAnonKey, 'Content-Type':'application/json', Prefer:'return=minimal' };
       if (/^eyJ/.test(CFG.supabaseAnonKey)) h.Authorization = 'Bearer ' + CFG.supabaseAnonKey;
-      fetch(CFG.supabaseUrl.replace(/\/$/,'') + '/rest/v1/hg_signups', { method:'POST', headers:h, body:JSON.stringify(row), keepalive:true })
-        .catch(() => {}).finally(() => { dbDone = true; tryFinish(); });
+      sendDB = fetch(CFG.supabaseUrl.replace(/\/$/,'') + '/rest/v1/hg_signups', { method:'POST', headers:h, body:JSON.stringify(row), keepalive:true }).catch(() => {});
     }
-    out.submit();
+    Promise.all([sendGF, sendDB]).finally(finish);
+    setTimeout(finish, 8000);
   });
   document.getElementById('again').onclick = () => { form.reset(); ok.hidden = true; form.hidden = false; };
 })();

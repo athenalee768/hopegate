@@ -245,6 +245,7 @@ table.su td.hope{max-width:260px;white-space:pre-line}
           <div class="field"><label for="s-mail">聯絡信箱</label><input id="s-mail" type="email"></div>
           <div class="field"><label for="s-line">LINE 社群邀請連結</label><input id="s-line" type="url" placeholder="https://line.me/ti/g2/…"><span class="hint">填入後，網站 QR Code 旁會出現「用手機直接加入」按鈕。</span></div>
         </div>
+        <div class="field"><label for="s-music">背景音樂（YouTube 連結）</label><input id="s-music" type="url" placeholder="https://youtu.be/…"><span class="hint">貼上 YouTube 影片連結，網站右下角會出現「播放音樂」按鈕。清空後儲存＝不放音樂。</span></div>
         <div class="ed-foot"><button class="btn btn-blue" type="submit" id="s-save">儲存設定</button></div>
       </form>
     </section>
@@ -485,15 +486,16 @@ const drop = $('drop');
 drop.addEventListener('drop', e => uploadPhotos(e.dataTransfer.files));
 
 /* ===== 設定 ===== */
-const SETS = { announcement:'s-ann', announcement_link:'s-annlink', contact_email:'s-mail', line_url:'s-line' };
+const SETS = { announcement:'s-ann', announcement_link:'s-annlink', contact_email:'s-mail', line_url:'s-line', music_url:'s-music' };
 async function loadSettings(){
   const { data, error } = await db.from('hg_settings').select('key,value');
   if (error) { toast(errText(error), true); return; }
+  if (!(data || []).some(r => r.key === 'music_url')) $('s-music').value = 'https://youtu.be/KIunwCFWDUE';
   (data || []).forEach(r => { if (SETS[r.key]) $(SETS[r.key]).value = r.value || ''; });
 }
 $('setForm').addEventListener('submit', async e => {
   e.preventDefault();
-  for (const k of ['announcement_link','line_url']) { const v = $(SETS[k]).value.trim(); if (v && !/^https?:\/\//i.test(v)) { toast('連結要以 https:// 開頭', true); $(SETS[k]).focus(); return; } }
+  for (const k of ['announcement_link','line_url','music_url']) { const v = $(SETS[k]).value.trim(); if (v && !/^https?:\/\//i.test(v)) { toast('連結要以 https:// 開頭', true); $(SETS[k]).focus(); return; } }
   const btn = $('s-save'); btn.disabled = true; btn.textContent = '儲存中…';
   const rows = Object.keys(SETS).map(k => ({ key:k, value:$(SETS[k]).value.trim() }));
   const { error } = await db.from('hg_settings').upsert(rows);
