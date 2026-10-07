@@ -1,0 +1,454 @@
+<!doctype html>
+<html lang="zh-Hant-TW">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex,nofollow">
+<title>希望之門網站後台</title>
+<link rel="icon" href="assets/mark.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@700;900&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  color-scheme:light;
+  --bg:#eef5fd; --card:#ffffff; --line:#d6e4f3; --navy:#1b2f4a; --ink:#2b3a4e; --muted:#5d6f85;
+  --blue:#1f5fa8; --blue-wash:#e4f0fc; --gold:#f2b929; --gold-soft:#fde7a4; --ok:#2e7d5b; --err:#c94a30;
+  --serif:'Noto Serif TC','PMingLiU',serif; --sans:'Noto Sans TC','PingFang TC','Microsoft JhengHei',system-ui,sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+[hidden]{display:none!important}
+body{font-family:var(--sans);background:var(--bg);color:var(--ink);font-size:15.5px;line-height:1.7;min-height:100vh}
+img{display:block;max-width:100%}
+h1,h2,h3{font-family:var(--serif);color:var(--navy);line-height:1.4}
+button,input,select,textarea{font:inherit;color:inherit}
+:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
+.wrap{width:min(1100px,100% - 32px);margin:0 auto}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:10px 20px;border-radius:999px;border:1px solid transparent;font-weight:700;cursor:pointer;white-space:nowrap;text-decoration:none;font-size:15px}
+.btn-gold{background:linear-gradient(180deg,#ffd257,var(--gold));color:#3b2a00}
+.btn-blue{background:var(--blue);color:#fff}
+.btn-ghost{background:#fff;border-color:var(--line);color:var(--blue)}
+.btn-danger{background:#fff;border-color:#f0c2b6;color:var(--err)}
+.btn-danger.armed{background:var(--err);color:#fff}
+.btn-sm{padding:6px 14px;font-size:14px}
+.btn[disabled]{opacity:.55;cursor:wait}
+
+/* login */
+.login{min-height:100vh;display:grid;place-items:center;padding:24px 16px}
+.login-card{width:min(420px,100%);background:var(--card);border-radius:24px;padding:36px 32px;box-shadow:0 24px 60px -30px rgba(27,47,74,.5);display:grid;gap:16px}
+.login-card img{width:150px;margin:0 auto}
+.login-card h1{text-align:center;font-size:22px}
+.note{font-size:14px;color:var(--muted)}
+.msg{font-size:14px;padding:10px 14px;border-radius:12px;background:#fdecea;color:var(--err)}
+.msg.info{background:var(--blue-wash);color:var(--blue)}
+
+/* fields */
+.field{display:grid;gap:6px;min-width:0}
+.field label{font-size:14px;font-weight:700;color:var(--navy)}
+.field label i{color:var(--err);font-style:normal}
+.field input[type=text],.field input[type=email],.field input[type=password],.field input[type=url],.field input[type=number],.field select,.field textarea{width:100%;padding:10px 14px;border-radius:12px;border:1px solid var(--line);background:#fff;font-size:15.5px}
+.field textarea{min-height:120px;resize:vertical}
+.field input:focus,.field select:focus,.field textarea:focus{outline:none;border-color:var(--blue);box-shadow:0 0 0 3px rgba(31,95,168,.15)}
+.field .hint{font-size:13px;color:var(--muted)}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+@media(max-width:640px){.grid2{grid-template-columns:1fr}}
+
+/* app */
+header.top{background:#fff;border-bottom:1px solid var(--line);position:sticky;top:0;z-index:10}
+header.top .wrap{display:flex;align-items:center;justify-content:space-between;gap:12px;height:64px}
+.brand{display:flex;align-items:center;gap:10px;min-width:0}
+.brand img{height:34px}
+.brand b{font-family:var(--serif);color:var(--navy);white-space:nowrap}
+.brand small{color:var(--muted);font-size:13px;display:block;line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:40vw}
+.top-actions{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}
+@media(max-width:560px){.brand small{display:none}.top-actions .btn{padding:7px 12px;font-size:13.5px}}
+.tabs{display:flex;gap:6px;margin:24px 0 18px;flex-wrap:wrap}
+.tabs button{padding:10px 20px;border-radius:999px;border:1px solid var(--line);background:#fff;font-weight:700;color:var(--muted);cursor:pointer}
+.tabs button[aria-selected="true"]{background:var(--navy);color:#fff;border-color:var(--navy)}
+.panel{background:var(--card);border-radius:20px;padding:26px;box-shadow:0 18px 40px -30px rgba(27,47,74,.45);margin-bottom:40px}
+.panel-head{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:18px}
+.panel-head h2{font-size:21px}
+.panel-head p{font-size:14px;color:var(--muted)}
+
+/* course list */
+.list{display:grid;gap:12px}
+.row{display:grid;grid-template-columns:120px 1fr auto;gap:16px;align-items:center;padding:12px;border:1px solid var(--line);border-radius:16px}
+.row .thumb{aspect-ratio:16/10;border-radius:10px;background:var(--blue-wash);overflow:hidden;display:grid;place-items:center;color:var(--muted);font-size:12px}
+.row .thumb img{width:100%;height:100%;object-fit:cover}
+.row h3{font-size:17px;font-family:var(--sans)}
+.row .meta{font-size:13.5px;color:var(--muted);display:flex;gap:6px 12px;flex-wrap:wrap}
+.tag{display:inline-block;font-size:12.5px;font-weight:700;padding:2px 10px;border-radius:999px;background:var(--blue-wash);color:var(--blue)}
+.tag.off{background:#eceff3;color:#6b7684}
+.tag.pub{background:#e3f4ec;color:var(--ok)}
+.row .acts{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}
+@media(max-width:700px){.row{grid-template-columns:90px 1fr}.row .acts{grid-column:1/-1;justify-content:flex-start}}
+.empty{padding:36px 20px;text-align:center;color:var(--muted);border:2px dashed var(--line);border-radius:16px}
+
+/* editor */
+.editor{display:grid;gap:16px;margin-top:4px}
+.img-pick{display:grid;grid-template-columns:200px 1fr;gap:16px;align-items:center}
+.img-pick .pv{aspect-ratio:16/10;border-radius:12px;background:var(--blue-wash);overflow:hidden;display:grid;place-items:center;color:var(--muted);font-size:13px;text-align:center;padding:6px}
+.img-pick .pv img{width:100%;height:100%;object-fit:cover}
+.img-pick .ctl{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+@media(max-width:560px){.img-pick{grid-template-columns:1fr}}
+.check{display:flex;gap:10px;align-items:center;font-weight:700;color:var(--navy)}
+.check input{width:20px;height:20px;accent-color:var(--blue)}
+.ed-foot{display:flex;gap:10px;justify-content:flex-end;flex-wrap:wrap;padding-top:6px;border-top:1px solid var(--line)}
+
+/* photos */
+.uploader{border:2px dashed var(--line);border-radius:16px;padding:22px;text-align:center;display:grid;gap:10px;justify-items:center;margin-bottom:20px}
+.uploader.drag{border-color:var(--blue);background:var(--blue-wash)}
+.photos{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:14px}
+.ph{border:1px solid var(--line);border-radius:14px;overflow:hidden;display:grid}
+.ph .pi{aspect-ratio:4/3;background:var(--blue-wash)}
+.ph .pi img{width:100%;height:100%;object-fit:cover}
+.ph .pb{padding:10px;display:grid;gap:8px}
+.ph input[type=text]{width:100%;padding:7px 10px;border-radius:10px;border:1px solid var(--line);font-size:14px}
+.ph .pa{display:flex;gap:6px;flex-wrap:wrap;align-items:center;justify-content:space-between}
+.ph select{padding:5px 8px;border-radius:8px;border:1px solid var(--line);font-size:13.5px}
+
+/* toast */
+.toast{position:fixed;left:50%;bottom:calc(24px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--navy);color:#fff;padding:12px 22px;border-radius:999px;font-weight:500;box-shadow:0 14px 40px -12px rgba(0,0,0,.4);z-index:50;max-width:calc(100% - 32px);text-align:center}
+.toast.bad{background:var(--err)}
+.setup{max-width:640px;margin:60px auto;padding:30px;background:#fff;border-radius:20px;display:grid;gap:12px}
+.setup code{background:var(--blue-wash);padding:2px 8px;border-radius:6px;font-size:14px}
+</style>
+</head>
+<body>
+
+<div class="setup" id="setupBox" hidden>
+  <h1>後台尚未連線</h1>
+  <p>請先打開網站資料夾裡的 <code>config.js</code>，填入 Supabase 的 Project URL 和 anon key，再重新上傳網站。</p>
+  <p class="note">詳細步驟請看「後台設定說明」。</p>
+</div>
+
+<main class="login" id="loginView" hidden>
+  <form class="login-card" id="loginForm" novalidate>
+    <img src="assets/logo.png" alt="中華希望之門文化協會">
+    <h1>網站後台登入</h1>
+    <div class="field"><label for="lg-email">管理者 Email</label><input id="lg-email" type="email" autocomplete="username" required></div>
+    <div class="field"><label for="lg-pass">密碼</label><input id="lg-pass" type="password" autocomplete="current-password" required></div>
+    <p class="msg" id="loginMsg" hidden></p>
+    <button class="btn btn-gold" type="submit" id="loginBtn">登入</button>
+    <p class="note" style="text-align:center"><a href="index.html" style="color:var(--blue)">← 回到網站</a></p>
+  </form>
+</main>
+
+<div id="appView" hidden>
+  <header class="top">
+    <div class="wrap">
+      <div class="brand"><img src="assets/mark.png" alt=""><div><b>希望之門網站後台</b><small id="who"></small></div></div>
+      <div class="top-actions">
+        <a class="btn btn-ghost btn-sm" href="index.html" target="_blank" rel="noopener">檢視網站</a>
+        <button class="btn btn-ghost btn-sm" type="button" id="logoutBtn">登出</button>
+      </div>
+    </div>
+  </header>
+
+  <div class="wrap">
+    <div class="tabs" role="tablist">
+      <button type="button" role="tab" aria-selected="true" data-tab="courses">課程與活動</button>
+      <button type="button" role="tab" aria-selected="false" data-tab="photos">活動花絮</button>
+      <button type="button" role="tab" aria-selected="false" data-tab="settings">網站設定</button>
+    </div>
+
+    <!-- 課程 -->
+    <section class="panel" id="tab-courses">
+      <div id="courseListView">
+        <div class="panel-head">
+          <div><h2>課程與活動</h2><p>這裡的課程會顯示在網站「近期課程與活動」區塊，數字越小排越前面。</p></div>
+          <button class="btn btn-gold" type="button" id="newCourse">＋ 新增課程</button>
+        </div>
+        <div class="list" id="courseRows"></div>
+        <p class="empty" id="courseEmpty" hidden>還沒有課程。按右上角「新增課程」建立第一筆。</p>
+      </div>
+
+      <form class="editor" id="courseForm" hidden novalidate>
+        <div class="panel-head" style="margin-bottom:0"><h2 id="edTitle">新增課程</h2></div>
+        <div class="field"><label for="c-title">課程名稱<i>*</i></label><input id="c-title" type="text" maxlength="80" placeholder="例：AI 生活應用入門班（第一期）"></div>
+        <div class="grid2">
+          <div class="field"><label for="c-program">所屬計畫</label>
+            <select id="c-program"><option value="women">婦女 AI 培訓計畫</option><option value="family">親子關係友愛計畫</option><option value="kids">兒童潛能發展計畫</option><option value="other">協會活動</option></select></div>
+          <div class="field"><label for="c-status">狀態</label>
+            <select id="c-status"><option>招生中</option><option>即將開課</option><option>已額滿</option><option>已結束</option></select></div>
+          <div class="field"><label for="c-date">日期與時間</label><input id="c-date" type="text" maxlength="80" placeholder="例：11/8（六）起，每週六 14:00–16:00"></div>
+          <div class="field"><label for="c-loc">地點</label><input id="c-loc" type="text" maxlength="80" placeholder="例：新北市板橋區○○社區活動中心／線上"></div>
+        </div>
+        <div class="field"><label for="c-sum">課程介紹</label><textarea id="c-sum" maxlength="600" placeholder="上課內容、適合對象、費用、名額等。可以分行。"></textarea></div>
+        <div class="field">
+          <label>課程圖片</label>
+          <div class="img-pick">
+            <div class="pv" id="c-pv">尚未選擇圖片</div>
+            <div>
+              <div class="ctl">
+                <label class="btn btn-ghost btn-sm" for="c-file">選擇圖片</label>
+                <input id="c-file" type="file" accept="image/*" hidden>
+                <button class="btn btn-danger btn-sm" type="button" id="c-clear" hidden>移除圖片</button>
+              </div>
+              <p class="hint" style="margin-top:8px">建議橫式照片，上傳時會自動縮小檔案。</p>
+            </div>
+          </div>
+        </div>
+        <div class="grid2">
+          <div class="field"><label for="c-link">報名連結</label><input id="c-link" type="url" placeholder="https://forms.gle/…"><span class="hint">留空的話，網站上的按鈕會帶到首頁的婦女 AI 報名表。</span></div>
+          <div class="field"><label for="c-sort">排序</label><input id="c-sort" type="number" value="0"><span class="hint">數字越小越前面。</span></div>
+        </div>
+        <label class="check"><input type="checkbox" id="c-pub" checked> 公開顯示在網站上</label>
+        <div class="ed-foot">
+          <button class="btn btn-ghost" type="button" id="c-cancel">取消</button>
+          <button class="btn btn-blue" type="submit" id="c-save">儲存課程</button>
+        </div>
+      </form>
+    </section>
+
+    <!-- 相片 -->
+    <section class="panel" id="tab-photos" hidden>
+      <div class="panel-head"><div><h2>活動花絮</h2><p>上傳的相片會顯示在網站「活動花絮」區塊；沒有相片時，網站會自動隱藏這個區塊。</p></div></div>
+      <label class="uploader" id="drop" for="p-files">
+        <b>點這裡選擇相片，或把相片拖曳到這裡</b>
+        <span class="note">可以一次選多張，上傳時會自動縮小檔案</span>
+        <span class="btn btn-gold btn-sm">選擇相片</span>
+      </label>
+      <input id="p-files" type="file" accept="image/*" multiple hidden>
+      <p class="msg info" id="upMsg" hidden></p>
+      <div class="photos" id="photoGrid"></div>
+      <p class="empty" id="photoEmpty" hidden>還沒有相片。</p>
+    </section>
+
+    <!-- 設定 -->
+    <section class="panel" id="tab-settings" hidden>
+      <div class="panel-head"><div><h2>網站設定</h2><p>修改後按「儲存設定」，重新整理網站就會看到。</p></div></div>
+      <form class="editor" id="setForm" novalidate>
+        <div class="field"><label for="s-ann">網站最上方公告</label><input id="s-ann" type="text" maxlength="120" placeholder="例：第一期婦女 AI 培訓班 11 月開課，名額有限！"><span class="hint">留空就不顯示公告列。</span></div>
+        <div class="field"><label for="s-annlink">公告連結（選填）</label><input id="s-annlink" type="url" placeholder="https://…"></div>
+        <div class="grid2">
+          <div class="field"><label for="s-mail">聯絡信箱</label><input id="s-mail" type="email"></div>
+          <div class="field"><label for="s-line">LINE 社群邀請連結</label><input id="s-line" type="url" placeholder="https://line.me/ti/g2/…"><span class="hint">填入後，網站 QR Code 旁會出現「用手機直接加入」按鈕。</span></div>
+        </div>
+        <div class="ed-foot"><button class="btn btn-blue" type="submit" id="s-save">儲存設定</button></div>
+      </form>
+    </section>
+  </div>
+</div>
+
+<div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
+
+<script src="config.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.2/dist/umd/supabase.js"></script>
+<script>
+(function(){
+const CFG = window.HOPEGATE_CONFIG || {};
+const $ = id => document.getElementById(id);
+const BUCKET = 'hopegate';
+const PROG = { women:'婦女 AI 培訓', family:'親子友愛', kids:'兒童潛能', other:'協會活動' };
+
+if (!CFG.supabaseUrl || !CFG.supabaseAnonKey || !window.supabase) { $('setupBox').hidden = false; return; }
+const db = window.supabase.createClient(CFG.supabaseUrl, CFG.supabaseAnonKey);
+
+let toastT;
+function toast(text, bad){ const t = $('toast'); t.textContent = text; t.className = 'toast' + (bad ? ' bad' : ''); t.hidden = false; clearTimeout(toastT); toastT = setTimeout(() => t.hidden = true, 3200); }
+const el = (tag, cls, text) => { const n = document.createElement(tag); if (cls) n.className = cls; if (text != null) n.textContent = text; return n; };
+function errText(e){ const m = (e && (e.message || e.error_description)) || ''; if (/row-level security|permission|not authorized/i.test(m)) return '沒有權限，請確認這個帳號在管理者名單中'; if (/Failed to fetch|network/i.test(m)) return '連線失敗，請檢查網路後再試一次'; return m || '發生錯誤，請再試一次'; }
+
+/* 兩段式刪除按鈕 */
+function armDelete(btn, fn){
+  let armed = false, t;
+  btn.addEventListener('click', async () => {
+    if (!armed) { armed = true; btn.classList.add('armed'); btn.textContent = '確定刪除？'; t = setTimeout(() => { armed = false; btn.classList.remove('armed'); btn.textContent = '刪除'; }, 3500); return; }
+    clearTimeout(t); btn.disabled = true; await fn(); btn.disabled = false;
+  });
+}
+
+/* 圖片壓縮與上傳 */
+function compress(file, max = 1600, q = .85){
+  return new Promise((res, rej) => {
+    const url = URL.createObjectURL(file); const img = new Image();
+    img.onload = () => {
+      const r = Math.min(1, max / Math.max(img.width, img.height));
+      const c = document.createElement('canvas'); c.width = Math.round(img.width * r); c.height = Math.round(img.height * r);
+      const x = c.getContext('2d'); x.fillStyle = '#fff'; x.fillRect(0, 0, c.width, c.height); x.drawImage(img, 0, 0, c.width, c.height);
+      URL.revokeObjectURL(url); c.toBlob(b => b ? res(b) : rej(new Error('圖片轉換失敗')), 'image/jpeg', q);
+    };
+    img.onerror = () => { URL.revokeObjectURL(url); rej(new Error('這個檔案無法讀取，請改用 JPG 或 PNG 圖片')); };
+    img.src = url;
+  });
+}
+async function upload(file, folder){
+  const blob = await compress(file);
+  const path = folder + '/' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 8) + '.jpg';
+  const { error } = await db.storage.from(BUCKET).upload(path, blob, { contentType:'image/jpeg', upsert:false });
+  if (error) throw error;
+  return db.storage.from(BUCKET).getPublicUrl(path).data.publicUrl;
+}
+async function removeFile(url){
+  const k = '/object/public/' + BUCKET + '/'; const i = (url || '').indexOf(k);
+  if (i < 0) return; try { await db.storage.from(BUCKET).remove([decodeURIComponent(url.slice(i + k.length))]); } catch(e) {}
+}
+
+/* ===== 登入 ===== */
+async function boot(){
+  const { data } = await db.auth.getSession();
+  if (!data.session) { $('loginView').hidden = false; $('appView').hidden = true; return; }
+  const { data: isAdmin, error } = await db.rpc('hg_is_admin');
+  if (error || !isAdmin) {
+    await db.auth.signOut();
+    $('loginView').hidden = false; $('appView').hidden = true;
+    const m = $('loginMsg'); m.textContent = error ? '後台資料表尚未建立，請先在 Supabase 執行 setup.sql。' : '這個帳號沒有管理權限。請確認 Email 已加入管理者名單。'; m.hidden = false;
+    return;
+  }
+  $('who').textContent = data.session.user.email;
+  $('loginView').hidden = true; $('appView').hidden = false;
+  loadCourses(); loadPhotos(); loadSettings();
+}
+$('loginForm').addEventListener('submit', async e => {
+  e.preventDefault();
+  const m = $('loginMsg'); m.hidden = true;
+  const email = $('lg-email').value.trim(), password = $('lg-pass').value;
+  if (!email || !password) { m.textContent = '請輸入 Email 和密碼'; m.hidden = false; return; }
+  $('loginBtn').disabled = true; $('loginBtn').textContent = '登入中…';
+  const { error } = await db.auth.signInWithPassword({ email, password });
+  $('loginBtn').disabled = false; $('loginBtn').textContent = '登入';
+  if (error) { m.textContent = /Invalid login/i.test(error.message) ? 'Email 或密碼不正確' : errText(error); m.hidden = false; return; }
+  boot();
+});
+$('logoutBtn').addEventListener('click', async () => { await db.auth.signOut(); location.reload(); });
+
+/* ===== 分頁 ===== */
+document.querySelectorAll('.tabs button').forEach(b => b.addEventListener('click', () => {
+  document.querySelectorAll('.tabs button').forEach(x => x.setAttribute('aria-selected', x === b));
+  ['courses','photos','settings'].forEach(t => $('tab-' + t).hidden = t !== b.dataset.tab);
+}));
+
+/* ===== 課程 ===== */
+let courses = [], editing = null, pendingFile = null, imgUrl = '';
+async function loadCourses(){
+  const { data, error } = await db.from('hg_courses').select('*').order('sort').order('created_at', { ascending:false });
+  if (error) { toast(errText(error), true); return; }
+  courses = data || []; renderCourses();
+}
+function renderCourses(){
+  const box = $('courseRows'); box.textContent = '';
+  $('courseEmpty').hidden = courses.length > 0;
+  courses.forEach(c => {
+    const r = el('div', 'row');
+    const th = el('div', 'thumb'); if (c.image_url) { const i = el('img'); i.src = c.image_url; i.alt = ''; th.appendChild(i); } else th.textContent = '無圖片';
+    r.appendChild(th);
+    const mid = el('div'); mid.appendChild(el('h3', '', c.title));
+    const meta = el('div', 'meta');
+    meta.appendChild(el('span', 'tag', PROG[c.program] || '協會活動'));
+    if (c.status) meta.appendChild(el('span', 'tag' + (/額滿|結束/.test(c.status) ? ' off' : ''), c.status));
+    meta.appendChild(el('span', 'tag ' + (c.published ? 'pub' : 'off'), c.published ? '公開中' : '已隱藏'));
+    if (c.date_text) meta.appendChild(el('span', '', c.date_text));
+    mid.appendChild(meta); r.appendChild(mid);
+    const acts = el('div', 'acts');
+    const ed = el('button', 'btn btn-ghost btn-sm', '編輯'); ed.type = 'button'; ed.onclick = () => openEditor(c);
+    const tg = el('button', 'btn btn-ghost btn-sm', c.published ? '隱藏' : '公開'); tg.type = 'button';
+    tg.onclick = async () => { tg.disabled = true; const { error } = await db.from('hg_courses').update({ published: !c.published }).eq('id', c.id); if (error) toast(errText(error), true); else toast(c.published ? '已從網站隱藏' : '已公開到網站'); loadCourses(); };
+    const del = el('button', 'btn btn-danger btn-sm', '刪除'); del.type = 'button';
+    armDelete(del, async () => { const { error } = await db.from('hg_courses').delete().eq('id', c.id); if (error) { toast(errText(error), true); return; } await removeFile(c.image_url); toast('已刪除課程'); loadCourses(); });
+    acts.append(ed, tg, del); r.appendChild(acts); box.appendChild(r);
+  });
+}
+function setPreview(src){
+  const pv = $('c-pv'); pv.textContent = '';
+  if (src) { const i = el('img'); i.src = src; i.alt = '課程圖片預覽'; pv.appendChild(i); $('c-clear').hidden = false; }
+  else { pv.textContent = '尚未選擇圖片'; $('c-clear').hidden = true; }
+}
+function openEditor(c){
+  editing = c || null; pendingFile = null; imgUrl = c ? (c.image_url || '') : '';
+  $('edTitle').textContent = c ? '編輯課程' : '新增課程';
+  $('c-title').value = c ? c.title : ''; $('c-program').value = c ? c.program : 'women'; $('c-status').value = c ? (c.status || '招生中') : '招生中';
+  $('c-date').value = c ? (c.date_text || '') : ''; $('c-loc').value = c ? (c.location || '') : ''; $('c-sum').value = c ? (c.summary || '') : '';
+  $('c-link').value = c ? (c.signup_url || '') : ''; $('c-sort').value = c ? c.sort : 0; $('c-pub').checked = c ? c.published : true;
+  $('c-file').value = ''; setPreview(imgUrl);
+  $('courseListView').hidden = true; $('courseForm').hidden = false; $('c-title').focus(); scrollTo({ top:0, behavior:'smooth' });
+}
+function closeEditor(){ $('courseForm').hidden = true; $('courseListView').hidden = false; }
+$('newCourse').onclick = () => openEditor(null);
+$('c-cancel').onclick = closeEditor;
+$('c-file').addEventListener('change', e => { const f = e.target.files[0]; if (!f) return; pendingFile = f; setPreview(URL.createObjectURL(f)); });
+$('c-clear').onclick = () => { pendingFile = null; imgUrl = ''; $('c-file').value = ''; setPreview(''); };
+$('courseForm').addEventListener('submit', async e => {
+  e.preventDefault();
+  const title = $('c-title').value.trim();
+  if (!title) { toast('請填寫課程名稱', true); $('c-title').focus(); return; }
+  const link = $('c-link').value.trim();
+  if (link && !/^https?:\/\//i.test(link)) { toast('報名連結要以 https:// 開頭', true); $('c-link').focus(); return; }
+  const btn = $('c-save'); btn.disabled = true; btn.textContent = '儲存中…';
+  try {
+    const oldUrl = editing ? (editing.image_url || '') : '';
+    let url = imgUrl;
+    if (pendingFile) url = await upload(pendingFile, 'courses');
+    const row = { title, program:$('c-program').value, status:$('c-status').value, date_text:$('c-date').value.trim(), location:$('c-loc').value.trim(), summary:$('c-sum').value.trim(), signup_url:link, image_url:url, sort:parseInt($('c-sort').value, 10) || 0, published:$('c-pub').checked };
+    const q = editing ? db.from('hg_courses').update(row).eq('id', editing.id) : db.from('hg_courses').insert(row);
+    const { error } = await q; if (error) throw error;
+    if (oldUrl && oldUrl !== url) removeFile(oldUrl);
+    toast(editing ? '已更新課程' : '已新增課程'); closeEditor(); loadCourses();
+  } catch(err) { toast(errText(err), true); }
+  btn.disabled = false; btn.textContent = '儲存課程';
+});
+
+/* ===== 相片 ===== */
+let photos = [];
+async function loadPhotos(){
+  const { data, error } = await db.from('hg_photos').select('*').order('sort').order('created_at', { ascending:false });
+  if (error) { toast(errText(error), true); return; }
+  photos = data || []; renderPhotos();
+}
+function renderPhotos(){
+  const g = $('photoGrid'); g.textContent = ''; $('photoEmpty').hidden = photos.length > 0;
+  photos.forEach(p => {
+    const card = el('div', 'ph');
+    const pi = el('div', 'pi'); const im = el('img'); im.src = p.image_url; im.alt = p.caption || ''; im.loading = 'lazy'; pi.appendChild(im); card.appendChild(pi);
+    const pb = el('div', 'pb');
+    const cap = el('input'); cap.type = 'text'; cap.value = p.caption || ''; cap.placeholder = '相片說明（選填）'; cap.maxLength = 60; cap.setAttribute('aria-label', '相片說明');
+    cap.addEventListener('change', async () => { const { error } = await db.from('hg_photos').update({ caption: cap.value.trim() }).eq('id', p.id); error ? toast(errText(error), true) : toast('已儲存說明'); });
+    pb.appendChild(cap);
+    const pa = el('div', 'pa');
+    const tg = el('button', 'btn btn-ghost btn-sm', p.published ? '公開中' : '已隱藏'); tg.type = 'button';
+    tg.onclick = async () => { const { error } = await db.from('hg_photos').update({ published: !p.published }).eq('id', p.id); if (error) toast(errText(error), true); else toast(p.published ? '已從網站隱藏' : '已公開到網站'); loadPhotos(); };
+    const del = el('button', 'btn btn-danger btn-sm', '刪除'); del.type = 'button';
+    armDelete(del, async () => { const { error } = await db.from('hg_photos').delete().eq('id', p.id); if (error) { toast(errText(error), true); return; } await removeFile(p.image_url); toast('已刪除相片'); loadPhotos(); });
+    pa.append(tg, del); pb.appendChild(pa); card.appendChild(pb); g.appendChild(card);
+  });
+}
+async function uploadPhotos(files){
+  files = [...files].filter(f => /^image\//.test(f.type)); if (!files.length) return;
+  const m = $('upMsg'); let ok = 0, fail = 0;
+  for (let i = 0; i < files.length; i++) {
+    m.textContent = '上傳中… ' + (i + 1) + ' / ' + files.length; m.hidden = false;
+    try { const url = await upload(files[i], 'photos'); const { error } = await db.from('hg_photos').insert({ image_url:url }); if (error) throw error; ok++; }
+    catch(e) { fail++; }
+  }
+  m.hidden = true; $('p-files').value = '';
+  toast(fail ? ('完成 ' + ok + ' 張，' + fail + ' 張失敗') : ('已上傳 ' + ok + ' 張相片'), fail > 0);
+  loadPhotos();
+}
+$('p-files').addEventListener('change', e => uploadPhotos(e.target.files));
+const drop = $('drop');
+['dragenter','dragover'].forEach(t => drop.addEventListener(t, e => { e.preventDefault(); drop.classList.add('drag'); }));
+['dragleave','drop'].forEach(t => drop.addEventListener(t, e => { e.preventDefault(); drop.classList.remove('drag'); }));
+drop.addEventListener('drop', e => uploadPhotos(e.dataTransfer.files));
+
+/* ===== 設定 ===== */
+const SETS = { announcement:'s-ann', announcement_link:'s-annlink', contact_email:'s-mail', line_url:'s-line' };
+async function loadSettings(){
+  const { data, error } = await db.from('hg_settings').select('key,value');
+  if (error) { toast(errText(error), true); return; }
+  (data || []).forEach(r => { if (SETS[r.key]) $(SETS[r.key]).value = r.value || ''; });
+}
+$('setForm').addEventListener('submit', async e => {
+  e.preventDefault();
+  for (const k of ['announcement_link','line_url']) { const v = $(SETS[k]).value.trim(); if (v && !/^https?:\/\//i.test(v)) { toast('連結要以 https:// 開頭', true); $(SETS[k]).focus(); return; } }
+  const btn = $('s-save'); btn.disabled = true; btn.textContent = '儲存中…';
+  const rows = Object.keys(SETS).map(k => ({ key:k, value:$(SETS[k]).value.trim() }));
+  const { error } = await db.from('hg_settings').upsert(rows);
+  btn.disabled = false; btn.textContent = '儲存設定';
+  error ? toast(errText(error), true) : toast('設定已儲存');
+});
+
+boot();
+})();
+</script>
+</body>
+</html>
