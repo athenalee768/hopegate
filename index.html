@@ -222,10 +222,29 @@ section{padding-block:104px}
 .flag .pill{display:inline-block;border:1px solid var(--gold);color:var(--gold-soft);border-radius:999px;padding:6px 22px;font-family:var(--serif);letter-spacing:.2em;margin-bottom:22px;background:rgba(255,255,255,.06)}
 .flag h2{color:#fff;font-size:clamp(30px,5vw,64px);font-weight:900;letter-spacing:.04em;text-shadow:0 4px 30px rgba(0,0,0,.25)}
 .flag p{font-family:var(--serif);font-size:clamp(17px,2vw,23px);color:var(--gold-soft);margin-top:18px}
-.declare h2{font-size:clamp(24px,3.6vw,44px);line-height:1.6}
-.declare .lines{margin-top:26px;display:grid;gap:6px}
-.declare .lines p{margin:0;color:#e3f0ff;font-size:clamp(16px,1.8vw,20px)}
-.declare .lines p b{color:var(--gold-soft)}
+.declare{padding-block:130px}
+.declare .pill{font-size:clamp(18px,1.8vw,22px);padding:8px 28px;font-weight:700;background:rgba(255,210,87,.15)}
+.dl-lines{display:grid;gap:18px;justify-items:center;margin-top:8px}
+.flag .dl{display:flex;align-items:center;gap:22px;margin:0;font-family:var(--serif);font-weight:900;font-size:clamp(28px,4.8vw,66px);line-height:1.3;color:#fff;letter-spacing:.04em;text-shadow:0 4px 24px rgba(0,0,0,.25)}
+.dl em{font-style:normal;color:#ffd257;background:linear-gradient(180deg,transparent 68%,rgba(255,210,87,.32) 68%);padding:0 .08em}
+.dl-ic{flex:none;width:80px;height:80px;border-radius:26px;display:grid;place-items:center;background:linear-gradient(145deg,var(--g1),var(--g2));box-shadow:0 14px 30px -12px rgba(0,0,0,.45),inset 0 2px 0 rgba(255,255,255,.45);transform:rotate(-6deg);animation:bobtile 4s ease-in-out infinite}
+.dl:nth-child(2) .dl-ic{animation-delay:-1.3s;transform:rotate(5deg)}
+.dl:nth-child(3) .dl-ic{animation-delay:-2.6s}
+.dl-ic svg{width:54px;height:54px}
+.js .declare .wrap:not(.in) .dl,.js .declare .wrap:not(.in) .dl-flow{opacity:0}
+.declare .wrap.in .dl{animation:rise .8s cubic-bezier(.2,.8,.2,1) both}
+.declare .wrap.in .dl:nth-child(2){animation-delay:.25s}
+.declare .wrap.in .dl:nth-child(3){animation-delay:.5s}
+.declare .wrap.in .dl-flow{animation:rise .8s cubic-bezier(.2,.8,.2,1) .8s both}
+.dl-flow{display:flex;flex-wrap:wrap;justify-content:center;align-items:center;gap:12px 14px;margin-top:46px}
+.chip{background:rgba(255,255,255,.14);border:1.5px solid rgba(255,255,255,.4);border-radius:999px;padding:12px 26px;font-family:var(--serif);font-weight:700;font-size:clamp(17px,1.7vw,22px);color:#e8f2ff;backdrop-filter:blur(6px)}
+.chip b{color:#ffd257}
+.arr{color:#ffd257;font-size:22px}
+.tws{position:absolute;inset:0;pointer-events:none;z-index:0}
+.tw{position:absolute;width:var(--z);height:var(--z);border-radius:50%;background:#fff6c9;box-shadow:0 0 12px 3px rgba(255,230,140,.8);animation:twinkle 3.2s ease-in-out var(--d) infinite}
+@keyframes twinkle{0%,100%{opacity:.15;transform:scale(.6)}50%{opacity:1;transform:scale(1.2)}}
+.declare .wrap{z-index:1}
+@media(max-width:760px){.flag .dl{gap:12px;font-size:clamp(24px,6.6vw,34px)}.dl-ic{width:54px;height:54px;border-radius:18px}.dl-ic svg{width:38px;height:38px}.dl-flow{flex-direction:column}.arr{transform:rotate(90deg)}}
 
 /* COURSES */
 .filters{display:flex;flex-wrap:wrap;gap:10px;margin-top:30px}
@@ -665,13 +684,20 @@ footer .copy{margin-top:36px;font-size:16px;color:var(--muted)}
 </section>
 
 <section class="flag declare">
+  <div class="tws" aria-hidden="true"><span class="tw" style="left:44%;top:27%;--d:1.6s;--z:4px"></span><span class="tw" style="left:12%;top:76%;--d:0.4s;--z:4px"></span><span class="tw" style="left:67%;top:35%;--d:0.1s;--z:8px"></span><span class="tw" style="left:56%;top:16%;--d:1.0s;--z:8px"></span><span class="tw" style="left:10%;top:80%;--d:0.5s;--z:5px"></span><span class="tw" style="left:83%;top:88%;--d:2.3s;--z:4px"></span><span class="tw" style="left:76%;top:82%;--d:1.6s;--z:5px"></span><span class="tw" style="left:8%;top:79%;--d:3.4s;--z:6px"></span><span class="tw" style="left:56%;top:26%;--d:2.2s;--z:6px"></span><span class="tw" style="left:74%;top:31%;--d:0.4s;--z:5px"></span><span class="tw" style="left:50%;top:20%;--d:2.2s;--z:4px"></span><span class="tw" style="left:75%;top:15%;--d:2.5s;--z:8px"></span><span class="tw" style="left:90%;top:76%;--d:1.7s;--z:6px"></span><span class="tw" style="left:62%;top:82%;--d:3.7s;--z:6px"></span><span class="tw" style="left:41%;top:39%;--d:3.2s;--z:5px"></span><span class="tw" style="left:13%;top:81%;--d:1.2s;--z:8px"></span></div>
   <div class="wrap fade">
     <div class="pill">願景宣言</div>
-    <h2>讓婦女重新擁有力量，<br>讓家庭重新找回愛，<br>讓孩子勇敢看見世界。</h2>
-    <div class="lines">
-      <p>從一個人開始，<b>改變一個家庭</b>；</p>
-      <p>從一個家庭開始，<b>影響下一代</b>；</p>
-      <p>從下一代開始，<b>創造更好的未來</b>。</p>
+    <div class="dl-lines">
+      <p class="dl"><span class="dl-ic" style="--g1:#ffc79a;--g2:#ff7a45"><svg viewBox="0 0 64 64" aria-hidden="true"><circle cx="27" cy="20" r="8.5" fill="#fff"/><path d="M18.5 20c0-6.2 3.8-10.5 8.5-10.5s8.5 4.2 8.5 10c-2-3.2-5-4.7-8.5-4.7-3.6 0-6.4 2-8.5 5.2z" fill="#8a3d1a"/><path d="M10 52c0-10.5 7.5-18 17-18s17 7.5 17 18z" fill="#fff"/><rect x="30" y="36" width="25" height="15.5" rx="2.5" fill="#2b3a4e"/><rect x="32.5" y="38.5" width="20" height="10.5" rx="1" fill="#fde7a4"/><path d="M27 52.5h31l-2.5 3.5H29.5z" fill="#2b3a4e"/><path d="M50 7l1.8 3.6 3.6 1.8-3.6 1.8-1.8 3.6-1.8-3.6-3.6-1.8 3.6-1.8z" fill="#fff6c9"/></svg></span><span>讓婦女重新擁有<em>力量</em>，</span></p>
+      <p class="dl"><span class="dl-ic" style="--g1:#9be8bd;--g2:#2fb36b"><svg viewBox="0 0 64 64" aria-hidden="true"><path d="M32 13.5c-2-3.4-7-2.7-7 1.1 0 3.3 7 7.2 7 7.2s7-3.9 7-7.2c0-3.8-5-4.5-7-1.1z" fill="#ff6b8b"/><circle cx="18" cy="24" r="7" fill="#fff"/><path d="M7 52c0-9.5 5-15.5 11-15.5s11 6 11 15.5z" fill="#fff"/><circle cx="46" cy="24" r="7" fill="#fff"/><path d="M35 52c0-9.5 5-15.5 11-15.5s11 6 11 15.5z" fill="#fff"/><circle cx="32" cy="36" r="5.5" fill="#fff6c9"/><path d="M24 56c0-6.5 3.5-11 8-11s8 4.5 8 11z" fill="#fff6c9"/></svg></span><span>讓家庭重新找回<em>愛</em>，</span></p>
+      <p class="dl"><span class="dl-ic" style="--g1:#9fdcff;--g2:#3a8ee6"><svg viewBox="0 0 64 64" aria-hidden="true"><circle cx="50" cy="13" r="6.5" fill="#ffd257"/><path d="M30 54V32" stroke="#fff" stroke-width="4" stroke-linecap="round"/><path d="M30 37c-10 0-15-6-15-14 10 0 15 5 15 14z" fill="#fff"/><path d="M30 33c0-9 5-13.5 14-13.5 0 9-5.5 13.5-14 13.5z" fill="#d9f7e5"/><path d="M17 55h26" stroke="#fff" stroke-width="4" stroke-linecap="round"/><path d="M12 8l1.8 3.6 3.6 1.8-3.6 1.8-1.8 3.6-1.8-3.6-3.6-1.8 3.6-1.8z" fill="#fff6c9"/></svg></span><span>讓孩子勇敢看見<em>世界</em>。</span></p>
+    </div>
+    <div class="dl-flow">
+      <span class="chip">從一個人開始，<b>改變一個家庭</b></span>
+      <span class="arr" aria-hidden="true">➜</span>
+      <span class="chip">從一個家庭開始，<b>影響下一代</b></span>
+      <span class="arr" aria-hidden="true">➜</span>
+      <span class="chip">從下一代開始，<b>創造更好的未來</b></span>
     </div>
   </div>
 </section>
