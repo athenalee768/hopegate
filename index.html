@@ -429,6 +429,19 @@ section{padding-block:104px}
 #form-start{scroll-margin-top:80px}
 @media(max-width:980px){.event{grid-template-columns:1fr}.poster{max-width:640px;margin:0 auto}}
 @media(max-width:480px){.event-info{padding:26px 20px}.event-info dd{font-size:19px}.event-info dt{font-size:18px}.event-info .btn{font-size:18px;padding:14px 26px}}
+.notice{max-width:1100px;margin:0 auto 36px;padding:32px 36px;border-radius:24px;background:#fffaf0;border:3px solid #f2b929;box-shadow:0 20px 50px -26px rgba(201,138,11,.7)}
+.notice h3{display:flex;align-items:center;gap:12px;font-size:clamp(22px,2.4vw,30px);color:#7a4a00;margin-bottom:18px}
+.notice .warn{font-size:1.2em}
+.notice ol{list-style:none;display:grid;grid-template-columns:1fr 1fr;gap:12px 28px}
+.notice li{display:grid;grid-template-columns:34px 30px 1fr;align-items:center;gap:8px;padding:12px 14px;border-radius:14px;background:#fff;font-size:clamp(17px,1.6vw,20px);font-weight:500;color:var(--navy);line-height:1.5}
+.notice .mk{width:32px;height:32px;border-radius:50%;display:grid;place-items:center;font-weight:900;font-size:18px;color:#fff}
+.notice li.ok .mk{background:#2e9e62}
+.notice li.no .mk{background:#d04a2f}
+.notice li.no{background:#fff3f0}
+.notice .nm{font-family:var(--latin);font-weight:700;font-size:22px;color:#a8730a}
+.notice .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+.notice-foot{margin-top:16px;font-size:17px;color:#7a5a20}
+@media(max-width:860px){.notice{padding:24px 18px}.notice ol{grid-template-columns:1fr}}
 form.card{max-width:920px;margin:0 auto;padding:46px 50px}
 .fs{border:0;margin-bottom:36px;min-width:0}
 .fs legend{font-family:var(--serif);font-size:24px;font-weight:700;color:var(--navy);margin-bottom:22px;display:flex;align-items:baseline;gap:12px}
@@ -916,8 +929,13 @@ footer .copy{margin-top:36px;font-size:16px;color:var(--muted)}
           <div><dt>開課</dt><dd>12 月中旬</dd></div>
         </dl>
         <p class="fine">補助資格及金額依主管機關公告與審核結果為準<br>主辦｜社團法人中華希望之門文化協會　協辦｜台灣手機教學協會</p>
-        <a class="btn btn-gold" href="#form-start">填寫說明會報名表 ↓</a>
+        <a class="btn btn-gold" href="#notice">看報名資格並填寫 ↓</a>
       </div>
+    </div>
+    <div class="notice fade" id="notice">
+      <h3><span class="warn" aria-hidden="true">⚠️</span>報名注意事項（補助資格）</h3>
+      <ol><li class="ok"><span class="mk" aria-hidden="true">✓</span><span class="nm">1</span><span>限女性，年齡不拘</span><em class="sr">可報名</em></li><li class="no"><span class="mk" aria-hidden="true">✕</span><span class="nm">2</span><span>目前有勞保或公保者，無法參加（勞保掛工會者請見第 3 點）</span><em class="sr">不符資格</em></li><li class="ok"><span class="mk" aria-hidden="true">✓</span><span class="nm">3</span><span>勞保掛在工會者可以參加，但需簽訂切結書，證明確實沒有工作</span><em class="sr">可報名</em></li><li class="no"><span class="mk" aria-hidden="true">✕</span><span class="nm">4</span><span>勞保掛在公司行號者，無法參加</span><em class="sr">不符資格</em></li><li class="ok"><span class="mk" aria-hidden="true">✓</span><span class="nm">5</span><span>有農保者可以報名</span><em class="sr">可報名</em></li><li class="ok"><span class="mk" aria-hidden="true">✓</span><span class="nm">6</span><span>退休滿 180 天的公教人員可以報名</span><em class="sr">可報名</em></li><li class="no"><span class="mk" aria-hidden="true">✕</span><span class="nm">7</span><span>在學學生無法參加</span><em class="sr">不符資格</em></li></ol>
+      <p class="notice-foot">補助資格及金額依主管機關公告與審核結果為準。不確定自己是否符合資格，歡迎來信 <b data-set="contact_email">hopegate999@gmail.com</b> 或於說明會現場詢問。</p>
     </div>
     <div id="form-start"></div>
 
