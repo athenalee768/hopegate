@@ -168,7 +168,7 @@ table.su td.hope{max-width:260px;white-space:pre-line}
           <button class="btn btn-gold btn-sm" type="button" id="suCsv">下載 Excel 檔（CSV）</button>
         </div>
       </div>
-      <div class="tbl-wrap"><table class="su"><thead><tr><th>送出時間</th><th>姓名</th><th>電話</th><th>LINE</th><th>Email</th><th>縣市</th><th>年齡</th><th>狀態</th><th>AI 程度</th><th>想學</th><th>期待</th><th></th></tr></thead><tbody id="suRows"></tbody></table></div>
+      <div class="tbl-wrap"><table class="su"><thead><tr><th>送出時間</th><th>姓名</th><th>電話</th><th>LINE</th><th>Email</th><th>縣市</th><th>年齡</th><th>狀態</th><th>AI 程度</th><th>想學</th><th>期待</th><th>推薦人</th><th></th></tr></thead><tbody id="suRows"></tbody></table></div>
       <p class="empty" id="suEmpty" hidden>目前還沒有報名資料。</p>
     </section>
 
@@ -357,6 +357,7 @@ function renderSignups(){
     const tr = el('tr');
     [fmtTime(r.created_at), r.name, r.phone, r.line, r.email, r.city, r.age, r.status, r.level, r.topics].forEach(v => tr.appendChild(el('td', '', v || '—')));
     tr.appendChild(el('td', 'hope', r.hope || '—'));
+    tr.appendChild(el('td', '', r.referrer || '—'));
     const td = el('td'); const del = el('button', 'btn btn-danger btn-sm', '刪除'); del.type = 'button';
     armDelete(del, async () => { const { error } = await db.from('hg_signups').delete().eq('id', r.id); if (error) { toast(errText(error), true); return; } toast('已刪除'); loadSignups(); });
     td.appendChild(del); tr.appendChild(td); tb.appendChild(tr);
@@ -365,9 +366,9 @@ function renderSignups(){
 $('suReload').onclick = () => { loadSignups(); toast('已更新名單'); };
 $('suCsv').onclick = () => {
   if (!signups.length) { toast('目前沒有資料可以下載', true); return; }
-  const head = ['送出時間','姓名','電話','LINE','Email','縣市','年齡','狀態','AI 程度','想學','期待'];
+  const head = ['送出時間','姓名','電話','LINE','Email','縣市','年齡','狀態','AI 程度','想學','期待','推薦人'];
   const q = v => '"' + String(v == null ? '' : v).replace(/"/g, '""') + '"';
-  const lines = [head.map(q).join(',')].concat(signups.map(r => [fmtTime(r.created_at), r.name, r.phone, r.line, r.email, r.city, r.age, r.status, r.level, r.topics, r.hope].map(q).join(',')));
+  const lines = [head.map(q).join(',')].concat(signups.map(r => [fmtTime(r.created_at), r.name, r.phone, r.line, r.email, r.city, r.age, r.status, r.level, r.topics, r.hope, r.referrer].map(q).join(',')));
   const blob = new Blob(['\ufeff' + lines.join('\r\n')], { type:'text/csv;charset=utf-8' });
   const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
   a.download = '希望之門報名名單_' + new Date().toISOString().slice(0,10) + '.csv';

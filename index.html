@@ -1031,6 +1031,7 @@ footer .copy{margin-top:36px;font-size:16px;color:var(--muted)}
           <div class="chips"><label><input type="radio" name="level" id="lv1" value="完全沒接觸"><span>完全沒接觸</span></label><label><input type="radio" name="level" id="lv2" value="曾用過 ChatGPT"><span>曾用過 ChatGPT</span></label><label><input type="radio" name="level" id="lv3" value="會簡單使用"><span>會簡單使用</span></label><label><input type="radio" name="level" id="lv4" value="工作中經常使用"><span>工作中經常使用</span></label></div><span class="errmsg"></span></div>
         <div class="group"><span class="group-label">最想學習內容（可複選）</span>
           <div class="chips multi"><label><input type="checkbox" name="topics" id="tp1" value="AI 基礎"><span>AI 基礎</span></label><label><input type="checkbox" name="topics" id="tp2" value="簡報製作"><span>簡報製作</span></label><label><input type="checkbox" name="topics" id="tp3" value="文書行政"><span>文書行政</span></label><label><input type="checkbox" name="topics" id="tp4" value="影音應用"><span>影音應用</span></label><label><input type="checkbox" name="topics" id="tp5" value="圖片製作"><span>圖片製作</span></label><label><input type="checkbox" name="topics" id="tp6" value="求職應用"><span>求職應用</span></label><label><input type="checkbox" name="topics" id="tp7" value="社群行銷"><span>社群行銷</span></label><label><input type="checkbox" name="topics" id="tp8" value="創業及個人品牌"><span>創業及個人品牌</span></label></div></div>
+        <div class="field group"><label for="f-referrer">推薦人 <small>（選填）</small></label><input id="f-referrer" name="referrer" maxlength="100" placeholder="如有推薦人，請填寫姓名"></div>
         <div class="field group"><label for="f-hope">參加期待</label><textarea id="f-hope" name="hope" maxlength="800" placeholder="想透過課程達成什麼目標？任何想讓我們知道的事，都歡迎寫下來。"></textarea></div>
       </fieldset>
       <div class="form-foot">
@@ -1091,7 +1092,7 @@ footer .copy{margin-top:36px;font-size:16px;color:var(--muted)}
 /* Google 表單：每一題的 entry 編號 */
 const GFORM = {
   id: '1FAIpQLSf5vfTRNPgOI3nCu8x3OEYOaTqg-voQ3szXy6A0cqujBO0Vog',
-  entry: { name:'1852405985', phone:'1650674324', line:'686319063', email:'1400285463', city:'829354034', age:'2119835291', status:'1961285528', level:'164763673', topics:'425642859', hope:'84120052' }
+  entry: { name:'1852405985', phone:'1650674324', line:'686319063', email:'1400285463', city:'829354034', age:'2119835291', status:'1961285528', level:'164763673', topics:'425642859', hope:'84120052', referrer:'990365071' }
 };
 const CFG = window.HOPEGATE_CONFIG || {};
 /* 首頁希望之門：光芒與光點跟著門的位置 */
@@ -1268,7 +1269,7 @@ if (!PREVIEW && CFG.supabaseUrl && CFG.supabaseAnonKey) {
     let first = null;
     checks.forEach(([q, good, msg]) => { setErr(q, good ? '' : msg); if (!good && !first) first = q; });
     if (first) { const x = box(first).querySelector('input,select'); x && x.focus(); box(first).scrollIntoView({block:'center', behavior:'smooth'}); return; }
-    const data = { name:v('name'), phone:v('phone'), line:v('line'), email:v('email'), city:v('city'), age:picked('age'), status:picked('status'), level:picked('level'), hope:v('hope'), topics:[...form.querySelectorAll('input[name="topics"]:checked')].map(i => i.value) };
+    const data = { name:v('name'), phone:v('phone'), line:v('line'), email:v('email'), city:v('city'), age:picked('age'), status:picked('status'), level:picked('level'), hope:v('hope'), referrer:v('referrer'), topics:[...form.querySelectorAll('input[name="topics"]:checked')].map(i => i.value) };
     const params = new URLSearchParams();
     const add = (k, val) => { if (!E[k] || val === '') return; params.append('entry.' + E[k], val); };
     Object.keys(data).forEach(k => Array.isArray(data[k]) ? data[k].forEach(t => add(k, t)) : add(k, data[k]));
@@ -1287,7 +1288,7 @@ if (!PREVIEW && CFG.supabaseUrl && CFG.supabaseAnonKey) {
       .catch(() => { try { navigator.sendBeacon && navigator.sendBeacon(gfUrl, params); } catch(e) {} });
     let sendDB = Promise.resolve();
     if (CFG.supabaseUrl && CFG.supabaseAnonKey) {
-      const row = { name:data.name, phone:data.phone, line:data.line, email:data.email, city:data.city, age:data.age, status:data.status, level:data.level, topics:data.topics.join('、'), hope:data.hope };
+      const row = { name:data.name, phone:data.phone, line:data.line, email:data.email, city:data.city, age:data.age, status:data.status, level:data.level, topics:data.topics.join('、'), hope:data.hope, referrer:data.referrer };
       const h = { apikey:CFG.supabaseAnonKey, 'Content-Type':'application/json', Prefer:'return=minimal' };
       if (/^eyJ/.test(CFG.supabaseAnonKey)) h.Authorization = 'Bearer ' + CFG.supabaseAnonKey;
       sendDB = fetch(CFG.supabaseUrl.replace(/\/$/,'') + '/rest/v1/hg_signups', { method:'POST', headers:h, body:JSON.stringify(row), keepalive:true }).catch(() => {});
