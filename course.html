@@ -537,17 +537,25 @@ footer .copy{margin-top:36px;font-size:16px;color:var(--muted)}
 .js .fade.in{opacity:1;transform:none}
 </style>
 <style>
-.cd-wrap{max-width:1080px;margin:0 auto;padding:118px 20px 80px}
-.cd-card{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.1fr);gap:0;overflow:hidden;padding:0}
-.cd-card .cimg{min-height:100%}
-.cd-card .cbody{padding:34px 34px 36px}
-.cd-card h3{font-size:30px}
-.cd-card .sum{white-space:pre-line;font-size:18px;line-height:1.9}
-.cd-msg{text-align:center;padding:80px 0;font-size:20px;color:var(--muted)}
-.cd-back{margin-top:28px}
-@media(max-width:820px){.cd-card{grid-template-columns:1fr}.cd-card .cbody{padding:24px}.cd-card h3{font-size:24px}}
+.cd-wrap{max-width:1040px;margin:0 auto;padding:112px 20px 80px}
+.cd-card{background:#fff;border-radius:22px;box-shadow:0 20px 50px -30px rgba(27,47,74,.45);overflow:hidden;display:grid;grid-template-columns:1fr 1fr;color:#1b2f4a}
+.cd-img{position:relative;background:#eef6ff;min-height:100%}
+.cd-img img{display:block;width:100%;height:auto}
+.cd-tags{position:absolute;top:14px;left:14px;display:flex;gap:8px;flex-wrap:wrap}
+.cd-tag{background:#fff;border-radius:999px;padding:6px 14px;font-size:14px;font-weight:700;color:#1d4f86;box-shadow:0 4px 12px -6px rgba(0,0,0,.4)}
+.cd-tag.gold{background:#ffd257;color:#3b2a00}
+.cd-tag.off{background:#8a8f98;color:#fff}
+.cd-body{padding:32px 34px}
+.cd-body h1{font-size:28px;margin:0 0 16px;line-height:1.35;font-family:"Noto Serif TC",serif}
+.cd-meta{display:grid;gap:8px;margin:0 0 18px;font-size:17px;color:#34495e;line-height:1.6}
+.cd-sum{white-space:pre-line;font-size:17px;line-height:1.9;color:#2c3e50;margin:0}
+.cd-foot{margin-top:26px}
+.cd-msg{text-align:center;padding:80px 0;font-size:20px;color:#5a6b7d}
+.cd-back{margin-top:26px}
+@media(max-width:820px){.cd-card{grid-template-columns:1fr}.cd-body{padding:22px}.cd-body h1{font-size:23px}}
 </style>
 </head>
+
 <body>
 <nav class="nav" id="nav" style="position:fixed;top:0;left:0;right:0"><div class="wrap" style="display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px 20px">
   <a class="brand" href="index.html" style="display:flex;align-items:center;gap:10px;text-decoration:none;color:inherit"><img src="assets/mark.png" alt="" style="height:44px"><b style="font-family:var(--serif);font-size:18px">中華希望之門文化協會</b></a>
@@ -583,23 +591,25 @@ function render(c){
   const p = PROGRAM[c.program] || PROGRAM.other;
   const closed = /額滿|結束/.test(c.status || '');
   root.textContent = '';
-  const card = el('article', 'course glass cd-card'); card.style.setProperty('--c', p.c);
-  const im = el('div', 'cimg');
+  const card = el('article', 'cd-card');
+  const im = el('div', 'cd-img');
   const src = safeUrl(c.image_url || '');
   if (src) { const img = el('img'); img.src = src; img.alt = c.title || ''; im.appendChild(img); }
-  im.appendChild(el('span', 'badge', p.label));
-  if (c.status) im.appendChild(el('span', 'status' + (closed ? ' off' : ''), c.status));
+  const tags = el('div', 'cd-tags');
+  tags.appendChild(el('span', 'cd-tag', p.label));
+  if (c.status) tags.appendChild(el('span', 'cd-tag ' + (closed ? 'off' : 'gold'), c.status));
+  im.appendChild(tags);
   card.appendChild(im);
 
-  const b = el('div', 'cbody');
-  b.appendChild(el('h3', '', c.title || ''));
-  const meta = el('div', 'meta');
-  if (c.date_text) meta.appendChild(el('span', '', '日期｜' + c.date_text));
-  if (c.location) meta.appendChild(el('span', '', '地點｜' + c.location));
+  const b = el('div', 'cd-body');
+  b.appendChild(el('h1', '', c.title || ''));
+  const meta = el('div', 'cd-meta');
+  if (c.date_text) meta.appendChild(el('div', '', '日期｜' + c.date_text));
+  if (c.location) meta.appendChild(el('div', '', '地點｜' + c.location));
   if (meta.childNodes.length) b.appendChild(meta);
-  if (c.summary) b.appendChild(el('p', 'sum', c.summary));
+  if (c.summary) b.appendChild(el('p', 'cd-sum', c.summary));
 
-  const f = el('div', 'cfoot');
+  const f = el('div', 'cd-foot');
   if (!closed) {
     const link = safeUrl(c.signup_url || '');
     const a = el('a', 'btn btn-gold', link ? '我要報名 →' : '洽詢與報名 →');
