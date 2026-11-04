@@ -984,19 +984,19 @@ footer .copy{margin-top:36px;font-size:16px;color:var(--muted)}
       <p>零基礎也能開始！歡迎對 AI 學習、二度就業、職涯轉型或補助課程有興趣的女性報名說明會。</p>
     </div>
     <div class="event fade">
-      <a class="poster" href="assets/poster-1102.jpg" target="_blank" rel="noopener"><img src="assets/poster-1102.jpg" alt="婦女 AI 培力賦能講座・補助說明會海報：11/02（一）14:00–16:00，台北市忠孝東路四段270號3樓 Merkaba 教育中心，公益免費，12月中旬開課" loading="lazy"></a>
+      <a class="poster" id="posterLink" href="assets/poster-1102.jpg" target="_blank" rel="noopener"><img id="posterImg" src="assets/poster-1102.jpg" alt="活動海報" loading="lazy"></a>
       <div class="event-info glass">
-        <span class="tagx">公益免費</span>
-        <h3>婦女 AI 培力<br>賦能講座・補助說明會</h3>
-        <p class="slogan">一起學 AI，開啟新的可能</p>
+        <span class="tagx" id="ev-tag">公益免費</span>
+        <h3 id="ev-title">婦女 AI 培力<br>賦能講座・補助說明會</h3>
+        <p class="slogan" id="ev-slogan">一起學 AI，開啟新的可能</p>
         <dl>
-          <div><dt>日期</dt><dd>11/02（一）14:00–16:00</dd></div>
-          <div><dt>地點</dt><dd>台北市忠孝東路四段 270 號 3 樓<br>Merkaba 教育中心</dd></div>
-          <div><dt>對象</dt><dd>待業或退休 180 天以上女性會員<br>（男性會員歡迎旁聽）</dd></div>
-          <div><dt>內容</dt><dd>學會 AI 指令、文書處理、簡報設計；<br>補助資格與申請流程一次了解</dd></div>
-          <div><dt>開課</dt><dd>12 月中旬</dd></div>
+          <div><dt>日期</dt><dd id="ev-date">11/02（一）14:00–16:00</dd></div>
+          <div><dt>地點</dt><dd id="ev-place">台北市忠孝東路四段 270 號 3 樓<br>Merkaba 教育中心</dd></div>
+          <div><dt>對象</dt><dd id="ev-target">待業或退休 180 天以上女性會員<br>（男性會員歡迎旁聽）</dd></div>
+          <div><dt>內容</dt><dd id="ev-content">學會 AI 指令、文書處理、簡報設計；<br>補助資格與申請流程一次了解</dd></div>
+          <div><dt>開課</dt><dd id="ev-start">12 月中旬</dd></div>
         </dl>
-        <p class="fine">補助資格及金額依主管機關公告與審核結果為準<br>主辦｜社團法人中華希望之門文化協會　協辦｜台灣手機教學協會</p>
+        <p class="fine" id="ev-note">補助資格及金額依主管機關公告與審核結果為準<br>主辦｜社團法人中華希望之門文化協會　協辦｜台灣手機教學協會</p>
         <a class="btn btn-gold" href="#notice">看報名資格並填寫 ↓</a>
       </div>
     </div>
@@ -1156,7 +1156,7 @@ function setupMusic(url){
 /* ===== 後台資料（Supabase） ===== */
 const PROGRAM = { women:{label:'婦女 AI 培訓', c:'var(--women)'}, family:{label:'親子友愛', c:'var(--family)'}, kids:{label:'兒童潛能', c:'var(--kids)'}, other:{label:'協會活動', c:'var(--sky-700)'} };
 const el = (tag, cls, text) => { const n = document.createElement(tag); if (cls) n.className = cls; if (text != null) n.textContent = text; return n; };
-const safeUrl = u => { try { const x = new URL(u, location.href); return /^https?:$/.test(x.protocol) ? x.href : ''; } catch(e) { return ''; } };
+const safeUrl = u => { if (!u) return ''; try { const x = new URL(u, location.href); return /^https?:$/.test(x.protocol) ? x.href : ''; } catch(e) { return ''; } };
 
 async function sb(table, query){
   const r = await fetch(CFG.supabaseUrl.replace(/\/$/,'') + '/rest/v1/' + table + '?' + query, { headers: /^eyJ/.test(CFG.supabaseAnonKey) ? { apikey:CFG.supabaseAnonKey, Authorization:'Bearer ' + CFG.supabaseAnonKey } : { apikey:CFG.supabaseAnonKey } });
@@ -1224,6 +1224,15 @@ function applySettings(rows){
     a.hidden = false;
   }
   if (s.contact_email) document.querySelectorAll('[data-set="contact_email"]').forEach(n => n.textContent = s.contact_email);
+  const EVT = { event_tag:'ev-tag', event_title:'ev-title', event_slogan:'ev-slogan', event_date:'ev-date', event_place:'ev-place', event_target:'ev-target', event_content:'ev-content', event_start:'ev-start', event_note:'ev-note' };
+  Object.keys(EVT).forEach(k => {
+    if (!(k in s)) return;
+    const n = document.getElementById(EVT[k]); if (!n) return;
+    n.textContent = s[k]; n.style.whiteSpace = 'pre-line';
+    const box = n.tagName === 'DD' ? n.parentElement : n;
+    box.style.display = s[k] ? '' : 'none';
+  });
+  if (s.poster_url) { const pu = safeUrl(s.poster_url); if (pu) { document.getElementById('posterImg').src = pu; document.getElementById('posterLink').href = pu; } }
   if ('music_url' in s) setupMusic(s.music_url);
   const line = safeUrl(s.line_url || '');
   if (line) { const b = document.getElementById('lineBtn'); b.href = line; b.hidden = false; }

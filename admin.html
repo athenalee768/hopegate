@@ -239,6 +239,11 @@ table.su td.hope{max-width:260px;white-space:pre-line}
     <section class="panel" id="tab-settings" hidden>
       <div class="panel-head"><div><h2>網站設定</h2><p>修改後按「儲存設定」，重新整理網站就會看到。</p></div></div>
       <form class="editor" id="setForm" novalidate>
+        <div class="field"><label>活動海報</label>
+          <div id="s-poster-pv" style="max-width:260px;aspect-ratio:3/4;border-radius:12px;overflow:hidden;border:1px solid var(--line);background:var(--blue-wash);display:grid;place-items:center;color:var(--muted);font-size:13px"><span>尚未設定海報，首頁顯示預設海報</span></div>
+          <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap"><label class="btn btn-ghost btn-sm" for="s-poster-file">選擇海報圖片</label><input id="s-poster-file" type="file" accept="image/*" hidden><button class="btn btn-danger btn-sm" type="button" id="s-poster-clear">移除海報</button></div>
+          <span class="hint">首頁「活動」區塊會顯示這張海報。選好圖片後按「儲存設定」才會生效；辦其他活動時也可以在這裡換圖。</span>
+        </div>
         <div class="field"><label for="s-ann">網站最上方公告</label><input id="s-ann" type="text" maxlength="120" placeholder="例：第一期婦女 AI 培訓班 11 月開課，名額有限！"><span class="hint">留空就不顯示公告列。</span></div>
         <div class="field"><label for="s-annlink">公告連結（選填）</label><input id="s-annlink" type="url" placeholder="https://…"></div>
         <div class="grid2">
@@ -246,6 +251,21 @@ table.su td.hope{max-width:260px;white-space:pre-line}
           <div class="field"><label for="s-line">LINE 社群邀請連結</label><input id="s-line" type="url" placeholder="https://line.me/ti/g2/…"><span class="hint">填入後，網站 QR Code 旁會出現「用手機直接加入」按鈕。</span></div>
         </div>
         <div class="field"><label for="s-music">背景音樂（YouTube 連結）</label><input id="s-music" type="url" placeholder="https://youtu.be/…"><span class="hint">貼上 YouTube 影片連結，網站右下角會出現「播放音樂」按鈕。清空後儲存＝不放音樂。</span></div>
+        <h3 style="margin:22px 0 8px;font-size:17px">活動說明（首頁海報旁的文字）</h3>
+        <span class="hint" style="display:block;margin-bottom:12px">要辦其他活動，改這裡的文字即可。欄位留空，首頁就不顯示該項。</span>
+        <div class="grid2">
+          <div class="field"><label for="s-ev-tag">左上角標籤</label><input id="s-ev-tag" type="text" maxlength="20"></div>
+          <div class="field"><label for="s-ev-title">活動標題</label><input id="s-ev-title" type="text" maxlength="60"></div>
+        </div>
+        <div class="field"><label for="s-ev-slogan">副標語</label><input id="s-ev-slogan" type="text" maxlength="60"></div>
+        <div class="grid2">
+          <div class="field"><label for="s-ev-date">日期</label><input id="s-ev-date" type="text" maxlength="60"></div>
+          <div class="field"><label for="s-ev-start">開課</label><input id="s-ev-start" type="text" maxlength="60"></div>
+        </div>
+        <div class="field"><label for="s-ev-place">地點</label><textarea id="s-ev-place" rows="2" maxlength="120"></textarea><span class="hint">可換行。</span></div>
+        <div class="field"><label for="s-ev-target">對象</label><textarea id="s-ev-target" rows="2" maxlength="160"></textarea><span class="hint">可換行。</span></div>
+        <div class="field"><label for="s-ev-content">內容</label><textarea id="s-ev-content" rows="2" maxlength="200"></textarea><span class="hint">可換行。</span></div>
+        <div class="field"><label for="s-ev-note">底部小字（補助說明、主辦單位等）</label><textarea id="s-ev-note" rows="3" maxlength="300"></textarea><span class="hint">可換行。</span></div>
         <div class="ed-foot"><button class="btn btn-blue" type="submit" id="s-save">儲存設定</button></div>
       </form>
     </section>
@@ -487,18 +507,45 @@ const drop = $('drop');
 drop.addEventListener('drop', e => uploadPhotos(e.dataTransfer.files));
 
 /* ===== 設定 ===== */
-const SETS = { announcement:'s-ann', announcement_link:'s-annlink', contact_email:'s-mail', line_url:'s-line', music_url:'s-music' };
+const SETS = { announcement:'s-ann', announcement_link:'s-annlink', contact_email:'s-mail', line_url:'s-line', music_url:'s-music',
+  event_tag:'s-ev-tag', event_title:'s-ev-title', event_slogan:'s-ev-slogan', event_date:'s-ev-date', event_place:'s-ev-place',
+  event_target:'s-ev-target', event_content:'s-ev-content', event_start:'s-ev-start', event_note:'s-ev-note' };
+// 尚未儲存過的活動說明，先顯示目前網頁上的預設文字
+const EV_DEFAULT = {
+  event_tag:'公益免費', event_title:'婦女 AI 培力賦能講座・補助說明會', event_slogan:'一起學 AI，開啟新的可能',
+  event_date:'11/02（一）14:00–16:00', event_place:'台北市忠孝東路四段 270 號 3 樓 Merkaba 教育中心',
+  event_target:'待業或退休 180 天以上女性會員（男性會員歡迎旁聽）', event_content:'學會 AI 指令、文書處理、簡報設計；補助資格與申請流程一次了解',
+  event_start:'12 月中旬', event_note:'補助資格及金額依主管機關公告與審核結果為準\n主辦｜社團法人中華希望之門文化協會　協辦｜台灣手機教學協會'
+};
 async function loadSettings(){
   const { data, error } = await db.from('hg_settings').select('key,value');
   if (error) { toast(errText(error), true); return; }
   if (!(data || []).some(r => r.key === 'music_url')) $('s-music').value = 'https://youtu.be/KIunwCFWDUE';
   (data || []).forEach(r => { if (SETS[r.key]) $(SETS[r.key]).value = r.value || ''; });
+  Object.keys(EV_DEFAULT).forEach(k => { if (!(data || []).some(r => r.key === k)) $(SETS[k]).value = EV_DEFAULT[k]; });
+  const p = (data || []).find(r => r.key === 'poster_url');
+  posterUrl = p && p.value || '';
+  setPosterPreview(posterUrl);
 }
+let posterUrl = '', posterFile = null;
+function setPosterPreview(url){
+  const pv = $('s-poster-pv'); pv.textContent = '';
+  if (url) { const im = document.createElement('img'); im.src = url; im.alt = ''; im.style.cssText = 'width:100%;height:100%;object-fit:cover'; pv.appendChild(im); }
+  else pv.appendChild(el('span', '', '尚未設定海報，首頁顯示預設海報'));
+}
+$('s-poster-file').addEventListener('change', e => { const f = e.target.files[0]; if (!f) return; posterFile = f; setPosterPreview(URL.createObjectURL(f)); });
+$('s-poster-clear').onclick = () => { posterFile = null; posterUrl = ''; $('s-poster-file').value = ''; setPosterPreview(''); };
+
 $('setForm').addEventListener('submit', async e => {
   e.preventDefault();
   for (const k of ['announcement_link','line_url','music_url']) { const v = $(SETS[k]).value.trim(); if (v && !/^https?:\/\//i.test(v)) { toast('連結要以 https:// 開頭', true); $(SETS[k]).focus(); return; } }
   const btn = $('s-save'); btn.disabled = true; btn.textContent = '儲存中…';
+  if (posterFile) {
+    try { posterUrl = await upload(posterFile, 'settings'); posterFile = null; }
+    catch (err) { btn.disabled = false; btn.textContent = '儲存設定'; toast(errText(err), true); return; }
+  }
   const rows = Object.keys(SETS).map(k => ({ key:k, value:$(SETS[k]).value.trim() }));
+  rows.push({ key:'poster_url', value: posterUrl });
   const { error } = await db.from('hg_settings').upsert(rows);
   btn.disabled = false; btn.textContent = '儲存設定';
   error ? toast(errText(error), true) : toast('設定已儲存');
