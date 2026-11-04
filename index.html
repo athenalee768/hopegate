@@ -279,7 +279,8 @@ section{padding-block:104px}
 .filters button{font:inherit;font-size:18px;font-weight:700;padding:9px 20px;border-radius:999px;border:1px solid var(--sky-200);background:#fff;color:var(--muted);cursor:pointer}
 .filters button[aria-pressed="true"]{background:var(--navy);color:#fff;border-color:var(--navy)}
 .courses{display:grid;grid-template-columns:repeat(3,1fr);gap:22px;margin-top:28px}
-.courses-head{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:10px 40px}
+.courses-head{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:flex-start;gap:10px 28px}
+.courses-head>div{flex:0 0 auto}
 .courses-head .lead{margin:0 0 4px;max-width:440px}
 .course{overflow:hidden;display:flex;flex-direction:column}
 .course .cimg{aspect-ratio:16/10;background:var(--sky-100) url(assets/mark.png) center/110px auto no-repeat;position:relative}
