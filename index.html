@@ -67,8 +67,14 @@ section{padding-block:104px}
 .center .lead{margin-inline:auto}
 
 /* NAV */
-.announce{background:linear-gradient(90deg,var(--sky-700),#2a6fc4);color:#fff;text-align:center;font-size:17.5px;padding:8px 20px;position:relative;z-index:60}
-.announce a{text-decoration:underline;color:var(--gold-soft)}
+.announce{background:linear-gradient(100deg,#1d5fb0,#2f8be6 50%,#1d5fb0);background-size:200% 100%;animation:annShift 9s ease infinite;color:#fff;text-align:center;font-size:19px;font-weight:700;letter-spacing:.03em;padding:12px 20px;position:relative;z-index:60;box-shadow:0 8px 24px -12px rgba(10,40,90,.6)}
+.announce .ann-tag{display:inline-block;background:#ffd257;color:#3b2a00;border-radius:999px;padding:2px 14px;font-size:14px;margin-right:12px;vertical-align:middle;box-shadow:0 0 0 0 rgba(255,210,87,.7);animation:annPulse 2s ease-in-out infinite}
+.announce a.ann-btn{display:inline-block;margin-left:12px;background:#fff;color:var(--sky-700);text-decoration:none;border-radius:999px;padding:5px 18px;font-size:16px;font-weight:700;vertical-align:middle;box-shadow:0 6px 16px -8px rgba(0,0,0,.45);transition:transform .2s,box-shadow .2s}
+.announce a.ann-btn:hover,.announce a.ann-btn:focus-visible{transform:translateY(-2px);box-shadow:0 10px 20px -8px rgba(0,0,0,.5)}
+@keyframes annShift{0%,100%{background-position:0% 0}50%{background-position:100% 0}}
+@keyframes annPulse{0%,100%{transform:scale(1)}50%{transform:scale(1.08)}}
+@media(prefers-reduced-motion:reduce){.announce,.announce .ann-tag{animation:none}}
+@media(max-width:600px){.announce{font-size:16px;padding:10px 14px}.announce a.ann-btn{margin:6px 0 0 0;display:inline-block}}
 .nav{position:sticky;top:0;z-index:50;transition:.3s;padding-top:env(safe-area-inset-top,0px);background:rgba(255,255,255,.55);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px)}
 .nav .wrap{display:flex;align-items:center;justify-content:space-between;gap:20px;height:84px}
 .nav.scrolled{background:rgba(255,255,255,.88);box-shadow:0 6px 24px -14px rgba(27,47,74,.35)}
@@ -1222,9 +1228,11 @@ function renderGallery(list){
 function applySettings(rows){
   const s = {}; rows.forEach(r => s[r.key] = r.value || '');
   if (s.announcement) {
-    const a = document.getElementById('announce'); a.textContent = s.announcement;
+    const a = document.getElementById('announce'); a.textContent = '';
+    a.appendChild(el('span', 'ann-tag', '最新消息'));
+    a.appendChild(document.createTextNode(s.announcement));
     const link = safeUrl(s.announcement_link || '');
-    if (link) { a.appendChild(document.createTextNode('　')); const x = el('a', '', '了解更多'); x.href = link; x.target = '_blank'; x.rel = 'noopener'; a.appendChild(x); }
+    if (link) { a.appendChild(document.createTextNode(' ')); const x = el('a', 'ann-btn', '了解更多 →'); x.href = link; x.target = '_blank'; x.rel = 'noopener'; a.appendChild(x); }
     a.hidden = false;
   }
   if (s.contact_email) document.querySelectorAll('[data-set="contact_email"]').forEach(n => n.textContent = s.contact_email);
