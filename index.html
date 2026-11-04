@@ -1187,14 +1187,18 @@ function renderCourses(list){
     if (c.summary) b.appendChild(el('p', 'sum', c.summary));
     card.appendChild(b);
     const closed = /額滿|結束/.test(c.status || '');
+    const f = el('div', 'cfoot');
+    const det = el('a', 'btn btn-ghost', '看詳情');
+    det.href = 'course.html?id=' + encodeURIComponent(c.id);
+    f.appendChild(det);
     if (!closed) {
-      const f = el('div', 'cfoot');
       const link = safeUrl(c.signup_url || '');
       const a = el('a', 'btn btn-gold', link ? '我要報名 →' : '洽詢與報名 →');
       a.href = link || '#signup';
       if (link) { a.target = '_blank'; a.rel = 'noopener'; }
-      f.appendChild(a); card.appendChild(f);
+      f.appendChild(a);
     }
+    card.appendChild(f);
     box.appendChild(card);
   });
   observe(box.querySelectorAll('.fade'));

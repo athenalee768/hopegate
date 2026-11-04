@@ -417,6 +417,13 @@ function renderCourses(){
     if (c.date_text) meta.appendChild(el('span', '', c.date_text));
     mid.appendChild(meta); r.appendChild(mid);
     const acts = el('div', 'acts');
+    const cp = el('button', 'btn btn-ghost btn-sm', '複製課程頁連結'); cp.type = 'button';
+    cp.onclick = async () => {
+      const url = new URL('course.html?id=' + encodeURIComponent(c.id), location.href).href;
+      try { await navigator.clipboard.writeText(url); toast('已複製課程頁連結，可貼到公告連結'); }
+      catch (e) { window.prompt('請複製這個連結：', url); }
+    };
+    acts.appendChild(cp);
     const ed = el('button', 'btn btn-ghost btn-sm', '編輯'); ed.type = 'button'; ed.onclick = () => openEditor(c);
     const tg = el('button', 'btn btn-ghost btn-sm', c.published ? '隱藏' : '公開'); tg.type = 'button';
     tg.onclick = async () => { tg.disabled = true; const { error } = await db.from('hg_courses').update({ published: !c.published }).eq('id', c.id); if (error) toast(errText(error), true); else toast(c.published ? '已從網站隱藏' : '已公開到網站'); loadCourses(); };
