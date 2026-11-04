@@ -1235,7 +1235,7 @@ function applySettings(rows){
     a.appendChild(el('span', 'ann-tag', '最新消息'));
     a.appendChild(document.createTextNode(s.announcement));
     const link = safeUrl(s.announcement_link || '');
-    if (link) { a.appendChild(document.createTextNode(' ')); const x = el('a', 'ann-btn', '了解更多 →'); x.href = link; x.target = '_blank'; x.rel = 'noopener'; a.appendChild(x); }
+    if (link) { a.appendChild(document.createTextNode(' ')); const x = el('a', 'ann-btn', '了解更多 →'); x.href = link; if (new URL(link).origin !== location.origin) { x.target = '_blank'; x.rel = 'noopener'; } a.appendChild(x); }
     a.hidden = false;
   }
   if (s.contact_email) document.querySelectorAll('[data-set="contact_email"]').forEach(n => n.textContent = s.contact_email);
