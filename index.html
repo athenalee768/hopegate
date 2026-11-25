@@ -467,6 +467,8 @@ section{padding-block:104px}
 .poster{display:block;border-radius:var(--r);overflow:hidden;border:4px solid #fff;box-shadow:0 24px 60px -28px rgba(27,47,74,.6)}
 .poster img{width:100%;height:auto}
 .poster[hidden]{display:none}
+/* 後台設定載入前，報名區先隱藏，避免重新整理時閃出預設的舊活動文字 */
+body:not(.loaded) #signup .wrap{visibility:hidden}
 .event-info{padding:40px 38px;display:grid;gap:16px;align-content:start}
 .event-info .tagx{justify-self:start;font-family:var(--serif);font-weight:900;font-size:21px;padding:8px 22px;border-radius:999px;background:linear-gradient(180deg,#ffd257,var(--gold));color:#3b2a00}
 .event-info h3{font-size:clamp(28px,3vw,40px);line-height:1.35;font-weight:900}
@@ -1469,8 +1471,8 @@ const _setupMusic = setupMusic; setupMusic = u => { musicSet = true; _setupMusic
 if (!PREVIEW && CFG.supabaseUrl && CFG.supabaseAnonKey) {
   sb('hg_courses', 'select=*&published=eq.true&order=sort.asc,created_at.desc').then(renderCourses).catch(() => {});
   sb('hg_photos', 'select=*&published=eq.true&order=sort.asc,created_at.desc').then(renderGallery).catch(() => {});
-  sb('hg_settings', 'select=key,value').then(applySettings).catch(() => {}).finally(() => { if (!musicSet) setupMusic(DEFAULT_MUSIC); });
-} else { setupMusic(DEFAULT_MUSIC); }
+  sb('hg_settings', 'select=key,value').then(applySettings).catch(() => {}).finally(() => { if (!musicSet) setupMusic(DEFAULT_MUSIC); document.body.classList.add('loaded'); });
+} else { setupMusic(DEFAULT_MUSIC); document.body.classList.add('loaded'); }
 
 /* ===== 婦女 AI 報名表 → Google 表單 ===== */
 (function(){
