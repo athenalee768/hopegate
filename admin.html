@@ -107,6 +107,11 @@ header.top .wrap{display:flex;align-items:center;justify-content:space-between;g
 .ph .pa{display:flex;gap:6px;flex-wrap:wrap;align-items:center;justify-content:space-between}
 .ph select{padding:5px 8px;border-radius:8px;border:1px solid var(--line);font-size:13.5px}
 
+/* form builder */
+.fq{border:1px solid var(--line);border-radius:14px;padding:14px;display:grid;gap:10px;background:#fbfdff}
+.fq-top{display:grid;grid-template-columns:1fr 200px;gap:10px}
+.fq-ctl{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+@media(max-width:640px){.fq-top{grid-template-columns:1fr}}
 /* toast */
 .tbl-wrap{overflow-x:auto;border:1px solid var(--line);border-radius:14px}
 table.su{border-collapse:collapse;width:100%;min-width:1100px;font-size:14.5px}
@@ -269,6 +274,19 @@ table.su td.hope{max-width:260px;white-space:pre-line}
         <div class="field"><label for="s-ev-note">底部小字（補助說明、主辦單位等）</label><textarea id="s-ev-note" rows="3" maxlength="300"></textarea><span class="hint">可換行。</span></div>
         <div class="ed-foot"><button class="btn btn-blue" type="submit" id="s-save">儲存設定</button></div>
       </form>
+      <section class="panel" style="margin:26px 0 0;box-shadow:none;border:1px solid var(--line)">
+        <div class="panel-head"><div><h2 style="font-size:18px">說明會報名表（可隨活動調整）</h2><p>這裡的題目會顯示在首頁說明會區塊。送出後會自動寫入 Google 表單，並寄出確認信。</p></div></div>
+        <div class="grid2">
+          <div class="field"><label for="s-form-api">報名表程式網址</label><input id="s-form-api" type="url" placeholder="https://script.google.com/macros/s/…/exec"><span class="hint">由 Google Apps Script 部署後取得，部署方式見 form-script 資料夾的 Code.gs。</span></div>
+          <div class="field"><label for="s-form-title">表單標題</label><input id="s-form-title" type="text" maxlength="120" placeholder="例：低醣健康實務班報名表"></div>
+        </div>
+        <div class="field"><label for="s-form-confirm">確認信內容（寄給報名者）</label><textarea id="s-form-confirm" rows="3" maxlength="600" placeholder="例：您好，已收到您的報名。我們會在開課前一週與您聯絡，謝謝！"></textarea><span class="hint">題目裡有「電子郵件」類型，且報名者有填寫，才會寄出確認信。</span></div>
+        <h3 style="margin:18px 0 8px;font-size:16px">報名題目</h3>
+        <div id="fqList" class="editor" style="gap:12px"></div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px"><button class="btn btn-ghost btn-sm" type="button" id="fqAdd">＋ 新增題目</button></div>
+        <p class="hint" id="fqInfo" style="margin-top:14px;word-break:break-all"></p>
+        <div class="ed-foot"><button class="btn btn-blue" type="button" id="fqSave">儲存報名題目</button><button class="btn btn-gold" type="button" id="fqBuild">儲存並建立 Google 表單</button></div>
+      </section>
     </section>
   </div>
 </div>
@@ -517,7 +535,8 @@ drop.addEventListener('drop', e => uploadPhotos(e.dataTransfer.files));
 /* ===== 設定 ===== */
 const SETS = { announcement:'s-ann', announcement_link:'s-annlink', contact_email:'s-mail', line_url:'s-line', music_url:'s-music',
   event_tag:'s-ev-tag', event_title:'s-ev-title', event_slogan:'s-ev-slogan', event_date:'s-ev-date', event_place:'s-ev-place',
-  event_target:'s-ev-target', event_content:'s-ev-content', event_start:'s-ev-start', event_note:'s-ev-note', event_signup_url:'s-ev-signup' };
+  event_target:'s-ev-target', event_content:'s-ev-content', event_start:'s-ev-start', event_note:'s-ev-note', event_signup_url:'s-ev-signup',
+  form_api_url:'s-form-api', event_form_title:'s-form-title', event_form_confirm:'s-form-confirm' };
 // 尚未儲存過的活動說明，先顯示目前網頁上的預設文字
 const EV_DEFAULT = {
   event_tag:'公益免費', event_title:'婦女 AI 培力賦能講座・補助說明會', event_slogan:'一起學 AI，開啟新的可能',
@@ -531,10 +550,101 @@ async function loadSettings(){
   if (!(data || []).some(r => r.key === 'music_url')) $('s-music').value = 'https://youtu.be/KIunwCFWDUE';
   (data || []).forEach(r => { if (SETS[r.key]) $(SETS[r.key]).value = r.value || ''; });
   Object.keys(EV_DEFAULT).forEach(k => { if (!(data || []).some(r => r.key === k)) $(SETS[k]).value = EV_DEFAULT[k]; });
+  const ef = (data || []).find(r => r.key === 'event_form');
+  try { fq = ef && ef.value ? JSON.parse(ef.value) : []; } catch (e) { fq = []; }
+  renderFq();
+  const fu = (data || []).find(r => r.key === 'event_form_url');
+  $('fqInfo').textContent = fu && fu.value ? '目前的 Google 表單：' + fu.value : '尚未建立 Google 表單。';
   const p = (data || []).find(r => r.key === 'poster_url');
   posterUrl = p && p.value || '';
   setPosterPreview(posterUrl);
 }
+/* ===== 說明會報名題目 ===== */
+let fq = [];
+const FQ_TYPES = [['text','短回答'],['paragraph','段落'],['radio','單選'],['checkbox','複選'],['dropdown','下拉選單'],['email','電子郵件（寄確認信用）']];
+const FQ_CHOICE = ['radio','checkbox','dropdown'];
+function newQ(){ return { id: 'q' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6), label: '', type: 'text', required: false, options: [] }; }
+function renderFq(){
+  const box = $('fqList'); box.textContent = '';
+  if (!fq.length) box.appendChild(el('p', 'note', '還沒有題目。按「新增題目」開始設定。'));
+  fq.forEach((q, i) => {
+    const card = el('div', 'fq');
+    const top = el('div', 'fq-top');
+    const lab = el('input'); lab.type = 'text'; lab.value = q.label || ''; lab.placeholder = '題目文字，例：您的姓名'; lab.maxLength = 120; lab.setAttribute('aria-label', '題目文字');
+    lab.addEventListener('input', () => { q.label = lab.value; });
+    const sel = el('select'); sel.setAttribute('aria-label', '題目類型');
+    FQ_TYPES.forEach(([v, t]) => { const o = el('option', '', t); o.value = v; if (q.type === v) o.selected = true; sel.appendChild(o); });
+    sel.addEventListener('change', () => { q.type = sel.value; renderFq(); });
+    top.append(lab, sel); card.appendChild(top);
+    if (FQ_CHOICE.includes(q.type)) {
+      const ta = el('textarea'); ta.rows = 3; ta.placeholder = '每行一個選項'; ta.value = (q.options || []).join('\n'); ta.setAttribute('aria-label', '選項');
+      ta.addEventListener('input', () => { q.options = ta.value.split('\n').map(x => x.trim()).filter(Boolean); });
+      card.appendChild(ta);
+    }
+    const ctl = el('div', 'fq-ctl');
+    const req = el('label', 'check'); const rc = el('input'); rc.type = 'checkbox'; rc.checked = !!q.required;
+    rc.addEventListener('change', () => { q.required = rc.checked; });
+    req.append(rc, document.createTextNode(' 必填'));
+    const up = el('button', 'btn btn-ghost btn-sm', '上移'); up.type = 'button'; up.disabled = i === 0;
+    up.onclick = () => { [fq[i - 1], fq[i]] = [fq[i], fq[i - 1]]; renderFq(); };
+    const dn = el('button', 'btn btn-ghost btn-sm', '下移'); dn.type = 'button'; dn.disabled = i === fq.length - 1;
+    dn.onclick = () => { [fq[i + 1], fq[i]] = [fq[i], fq[i + 1]]; renderFq(); };
+    const del = el('button', 'btn btn-danger btn-sm', '刪除'); del.type = 'button';
+    del.onclick = () => { fq.splice(i, 1); renderFq(); };
+    ctl.append(req, up, dn, del); card.appendChild(ctl);
+    box.appendChild(card);
+  });
+}
+function checkFq(){
+  for (let i = 0; i < fq.length; i++) {
+    const q = fq[i];
+    if (!(q.label || '').trim()) { toast('第 ' + (i + 1) + ' 題還沒有題目文字', true); return false; }
+    if (FQ_CHOICE.includes(q.type) && !(q.options || []).length) { toast('「' + q.label + '」請至少填一個選項', true); return false; }
+  }
+  const api = $('s-form-api').value.trim();
+  if (api && !/^https:\/\//i.test(api)) { toast('報名表程式網址要以 https:// 開頭', true); return false; }
+  return true;
+}
+async function saveFq(){
+  if (!checkFq()) return false;
+  const rows = [
+    { key:'event_form', value: JSON.stringify(fq.map(q => ({ id:q.id, label:(q.label || '').trim(), type:q.type, required:!!q.required, options:q.options || [] }))) },
+    { key:'form_api_url', value: $('s-form-api').value.trim() },
+    { key:'event_form_title', value: $('s-form-title').value.trim() },
+    { key:'event_form_confirm', value: $('s-form-confirm').value.trim() }
+  ];
+  const { error } = await db.from('hg_settings').upsert(rows);
+  if (error) { toast(errText(error), true); return false; }
+  return true;
+}
+$('fqAdd').onclick = () => { fq.push(newQ()); renderFq(); };
+$('fqSave').onclick = async () => { if (await saveFq()) toast('報名題目已儲存，首頁說明會區塊已更新'); };
+$('fqBuild').onclick = async () => {
+  if (!$('s-form-api').value.trim()) { toast('請先填寫報名表程式網址', true); return; }
+  if (!(await saveFq())) return;
+  const secret = window.prompt('請輸入報名表程式的管理密碼（就是 Apps Script 裡設定的 SECRET）：');
+  if (!secret) return;
+  const btn = $('fqBuild'); btn.disabled = true; btn.textContent = '建立中…';
+  try {
+    const res = await fetch($('s-form-api').value.trim(), {
+      method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify({
+        action: 'setup', secret,
+        title: $('s-form-title').value.trim() || '活動報名表',
+        confirm: $('s-form-confirm').value.trim(),
+        questions: fq.map(q => ({ id:q.id, label:(q.label || '').trim(), type:q.type, required:!!q.required, options:q.options || [] }))
+      })
+    });
+    const out = await res.json();
+    if (!out.ok) throw new Error(out.error || '建立失敗');
+    await db.from('hg_settings').upsert([{ key:'event_form_url', value: out.formUrl }]);
+    $('fqInfo').textContent = '已建立 Google 表單。學員填寫的網址：' + out.formUrl + '；管理與查看回覆：' + out.editUrl;
+    toast('Google 表單已建立');
+  } catch (err) {
+    toast('建立失敗：' + (err.message || '請檢查程式網址與密碼'), true);
+  } finally { btn.disabled = false; btn.textContent = '儲存並建立 Google 表單'; }
+};
+
 let posterUrl = '', posterFile = null;
 function setPosterPreview(url){
   const pv = $('s-poster-pv'); pv.textContent = '';

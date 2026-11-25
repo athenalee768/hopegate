@@ -573,6 +573,23 @@ footer .copy{margin-top:36px;font-size:16px;color:var(--muted)}
 .cd-sum{white-space:pre-line;font-size:17px;line-height:1.9;color:#2c3e50;margin:0}
 .cd-foot{margin-top:26px}
 @media(max-width:820px){.cd-card{grid-template-columns:1fr}.cd-body{padding:22px}.cd-title{font-size:23px}.cm-x{top:8px;right:8px}}
+
+/* ===== 說明會動態報名表 ===== */
+#dynWrap{max-width:820px;margin:0 auto}
+#dynForm{padding:34px 36px}
+.dq-q{display:grid;gap:8px;margin-bottom:20px}
+.dq-q>label{font-weight:700;color:var(--navy);font-size:17px}
+.dq-q>label i{color:#c94a30;font-style:normal;margin-left:3px}
+.dq-q input[type=text],.dq-q input[type=email],.dq-q textarea,.dq-q select{width:100%;padding:12px 14px;border-radius:12px;border:1px solid var(--line);font:inherit;font-size:17px;background:#fff}
+.dq-q textarea{min-height:110px;resize:vertical}
+.dq-opts{display:flex;flex-wrap:wrap;gap:10px}
+.dq-opt{display:flex;align-items:center;gap:8px;padding:10px 16px;border:1px solid var(--line);border-radius:999px;background:#fff;cursor:pointer;font-size:17px;color:var(--ink)}
+.dq-opt input{width:18px;height:18px;accent-color:#1f5fa8}
+.dq-msg{color:#c94a30;font-weight:700;min-height:1.6em;margin:4px 0 12px}
+#dynOk{max-width:820px;margin:0 auto;text-align:center;padding:44px 36px;display:grid;gap:14px;justify-items:center}
+#dynOk h3{font-size:28px}
+#dynOk p{font-size:18px;color:var(--muted);white-space:pre-line}
+@media(max-width:720px){#dynForm{padding:26px 20px}}
 </style>
 </head>
 <body>
@@ -604,7 +621,7 @@ footer .copy{margin-top:36px;font-size:16px;color:var(--muted)}
       <li><a href="#kids">兒童潛能</a></li>
       <li><a href="#join">成為同行者</a></li>
     </ul>
-    <a href="#signup" class="btn btn-gold">說明會報名</a>
+    <a href="#signup" class="btn btn-gold">活動報名</a>
   </div>
 </nav>
 
@@ -1029,6 +1046,10 @@ footer .copy{margin-top:36px;font-size:16px;color:var(--muted)}
         <a class="btn btn-gold" id="ev-btn" href="#notice">看報名資格並填寫 ↓</a>
       </div>
     </div>
+    <div id="dynWrap" hidden>
+      <form class="card glass" id="dynForm" novalidate></form>
+      <div class="glass" id="dynOk" hidden></div>
+    </div>
     <div class="notice fade" id="notice">
       <h3><span class="warn" aria-hidden="true">⚠️</span>報名注意事項（補助資格）</h3>
       <ol><li class="ok"><span class="mk" aria-hidden="true">✓</span><span class="nm">1</span><span>限女性，年齡不拘</span><em class="sr">可報名</em></li><li class="no"><span class="mk" aria-hidden="true">✕</span><span class="nm">2</span><span>目前有勞保或公保者，無法參加（勞保掛工會者請見第 3 點）</span><em class="sr">不符資格</em></li><li class="ok"><span class="mk" aria-hidden="true">✓</span><span class="nm">3</span><span>勞保掛在工會者可以參加，但需簽訂切結書，證明確實沒有工作</span><em class="sr">可報名</em></li><li class="no"><span class="mk" aria-hidden="true">✕</span><span class="nm">4</span><span>勞保掛在公司行號者，無法參加</span><em class="sr">不符資格</em></li><li class="ok"><span class="mk" aria-hidden="true">✓</span><span class="nm">5</span><span>有農保者可以報名</span><em class="sr">可報名</em></li><li class="ok"><span class="mk" aria-hidden="true">✓</span><span class="nm">6</span><span>退休滿 180 天的公教人員可以報名</span><em class="sr">可報名</em></li><li class="no"><span class="mk" aria-hidden="true">✕</span><span class="nm">7</span><span>在學學生無法參加</span><em class="sr">不符資格</em></li></ol>
@@ -1293,6 +1314,89 @@ function renderGallery(list){
   observe(box.querySelectorAll('.fade'));
 }
 
+
+/* ===== 說明會動態報名表（依後台題目產生，送到報名表程式） ===== */
+let dynState = null;
+function renderDyn(qs, api, confirmText, lineUrl){
+  dynState = { qs, api, confirmText, lineUrl };
+  const wrap = document.getElementById('dynWrap'), form = document.getElementById('dynForm'), ok = document.getElementById('dynOk');
+  form.textContent = ''; ok.hidden = true; ok.textContent = '';
+  qs.forEach(q => {
+    const box = el('div', 'dq-q'); box.dataset.qid = q.id;
+    const lab = el('label', '', q.label || ''); if (q.required) lab.appendChild(el('i', '', '*'));
+    box.appendChild(lab);
+    const gid = 'dq-' + q.id;
+    if (q.type === 'paragraph') { const t = el('textarea'); t.id = gid; box.appendChild(t); }
+    else if (q.type === 'radio' || q.type === 'checkbox') {
+      const g = el('div', 'dq-opts');
+      (q.options || []).forEach(o => {
+        const l = el('label', 'dq-opt'); const inp = el('input');
+        inp.type = q.type === 'radio' ? 'radio' : 'checkbox'; inp.name = gid; inp.value = o;
+        l.append(inp, document.createTextNode(o)); g.appendChild(l);
+      });
+      box.appendChild(g);
+    }
+    else if (q.type === 'dropdown') {
+      const sel = el('select'); sel.id = gid;
+      const first = el('option', '', '請選擇'); first.value = ''; sel.appendChild(first);
+      (q.options || []).forEach(o => { const op = el('option', '', o); op.value = o; sel.appendChild(op); });
+      box.appendChild(sel);
+    }
+    else { const t = el('input'); t.type = q.type === 'email' ? 'email' : 'text'; t.id = gid; if (q.type === 'email') t.autocomplete = 'email'; box.appendChild(t); }
+    form.appendChild(box);
+  });
+  const hp = el('input'); hp.type = 'text'; hp.name = 'website'; hp.tabIndex = -1; hp.autocomplete = 'off';
+  hp.style.cssText = 'position:absolute;left:-9999px;width:1px;height:1px;opacity:0'; form.appendChild(hp);
+  form.appendChild(el('p', 'dq-msg')); form.lastChild.id = 'dqMsg';
+  const btn = el('button', 'btn btn-gold', '送出報名'); btn.type = 'submit'; btn.id = 'dqBtn'; form.appendChild(btn);
+  form.onsubmit = submitDyn;
+  form.hidden = false; wrap.hidden = false;
+}
+function readDyn(qs){
+  const answers = {};
+  qs.forEach(q => {
+    const box = document.querySelector('#dynForm .dq-q[data-qid="' + q.id + '"]');
+    let v = '';
+    if (q.type === 'radio') { const c = box.querySelector('input:checked'); v = c ? c.value : ''; }
+    else if (q.type === 'checkbox') v = [...box.querySelectorAll('input:checked')].map(i => i.value);
+    else { const f = box.querySelector('textarea,input,select'); v = f ? f.value.trim() : ''; }
+    answers[q.id] = v;
+  });
+  return answers;
+}
+async function submitDyn(e){
+  e.preventDefault();
+  const { qs, api, confirmText, lineUrl } = dynState;
+  const msg = document.getElementById('dqMsg'); msg.textContent = '';
+  const hp = document.querySelector('#dynForm input[name=website]');
+  if (hp && hp.value) { showDynOk(confirmText, lineUrl); return; } // 機器人填寫：假裝成功
+  const answers = readDyn(qs);
+  for (const q of qs) {
+    const v = answers[q.id]; const empty = !v || (Array.isArray(v) && !v.length);
+    if (q.required && empty) { msg.textContent = '請填寫：' + q.label; document.querySelector('#dynForm .dq-q[data-qid="' + q.id + '"]').scrollIntoView({ behavior:'smooth', block:'center' }); return; }
+    if (q.type === 'email' && v && !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(v)) { msg.textContent = 'Email 格式不正確'; return; }
+  }
+  const emailQ = qs.find(q => q.type === 'email');
+  const email = emailQ ? answers[emailQ.id] : '';
+  const btn = document.getElementById('dqBtn'); btn.disabled = true; btn.textContent = '送出中…';
+  try {
+    const res = await fetch(api, { method:'POST', headers:{ 'Content-Type':'text/plain;charset=utf-8' }, body: JSON.stringify({ action:'submit', answers, email }) });
+    const out = await res.json();
+    if (!out.ok) throw new Error(out.error || '送出失敗');
+    showDynOk(confirmText, lineUrl);
+  } catch (err) {
+    msg.textContent = (err && /請填寫|不正確|尚未/.test(err.message || '')) ? err.message : '送出失敗，請稍後再試，或直接聯絡協會。';
+    btn.disabled = false; btn.textContent = '送出報名';
+  }
+}
+function showDynOk(confirmText, lineUrl){
+  const ok = document.getElementById('dynOk'); ok.textContent = '';
+  ok.appendChild(el('h3', '', '報名成功，謝謝您！'));
+  ok.appendChild(el('p', '', confirmText || '我們已收到您的報名。'));
+  if (lineUrl) { const a = el('a', 'btn btn-gold', '加入協會 LINE 官方帳號 →'); a.href = lineUrl; a.target = '_blank'; a.rel = 'noopener'; ok.appendChild(a); }
+  document.getElementById('dynForm').hidden = true;
+  ok.hidden = false; ok.scrollIntoView({ behavior:'smooth', block:'center' });
+}
 function applySettings(rows){
   const s = {}; rows.forEach(r => s[r.key] = r.value || '');
   if (s.announcement) {
@@ -1320,6 +1424,16 @@ function applySettings(rows){
     ['notice', 'form-start', 'form', 'gform'].forEach(id => { const n = document.getElementById(id); if (n) n.hidden = true; });
     document.getElementById('signup-title').textContent = (s.event_title || '說明會') + '｜報名';
     document.getElementById('signup-lead').textContent = s.event_content || '';
+  }
+  // 沒有外部報名連結、但後台有設定題目與程式網址：依題目產生報名表
+  let efQs = [];
+  try { efQs = s.event_form ? JSON.parse(s.event_form) : []; } catch (e) { efQs = []; }
+  const api = safeUrl(s.form_api_url || '');
+  if (!sig && efQs.length && api) {
+    ['notice', 'form-start', 'form', 'gform'].forEach(id => { const n = document.getElementById(id); if (n) n.hidden = true; });
+    document.getElementById('signup-title').textContent = s.event_form_title || ((s.event_title || '說明會') + '｜報名');
+    document.getElementById('signup-lead').textContent = s.event_content || '';
+    renderDyn(efQs, api, s.event_form_confirm || '', safeUrl(s.line_url || ''));
   }
   if (s.poster_url) { const pu = safeUrl(s.poster_url); if (pu) { document.getElementById('posterImg').src = pu; document.getElementById('posterLink').href = pu; } }
   if ('music_url' in s) setupMusic(s.music_url);
