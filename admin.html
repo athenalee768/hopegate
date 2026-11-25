@@ -291,7 +291,8 @@ table.su td.hope{max-width:260px;white-space:pre-line}
         <div class="panel-head"><div><h2 style="font-size:18px">說明會報名表（可隨活動調整）</h2><p>這裡的題目會顯示在首頁說明會區塊。送出後會自動寫入 Google 表單，並寄出確認信。</p></div></div>
         <div class="grid2">
           <div class="field"><label for="s-form-api">報名表程式網址</label><input id="s-form-api" type="url" placeholder="https://script.google.com/macros/s/…/exec"><span class="hint">由 Google Apps Script 部署後取得，部署方式見 form-script 資料夾的 Code.gs。</span></div>
-          <div class="field"><label for="s-form-title">表單標題</label><input id="s-form-title" type="text" maxlength="120" placeholder="例：低醣健康實務班報名表"></div>
+          <div class="field"><label for="s-form-title">報名區標題</label><input id="s-form-title" type="text" maxlength="120" placeholder="例：低醣健康實務班"></div>
+          <div class="field"><label for="s-form-lead">報名區副標題</label><input id="s-form-lead" type="text" maxlength="200" placeholder="例：名額有限，歡迎報名"><span class="hint">顯示在報名區標題下方，一兩句即可。活動內容請填在「活動說明」的內容欄位。</span></div>
         </div>
         <div class="field"><label for="s-form-confirm">確認信內容（寄給報名者）</label><textarea id="s-form-confirm" rows="3" maxlength="600" placeholder="例：您好，已收到您的報名。我們會在開課前一週與您聯絡，謝謝！"></textarea><span class="hint">題目裡有「電子郵件」類型，且報名者有填寫，才會寄出確認信。</span></div>
         <h3 style="margin:18px 0 8px;font-size:16px">報名題目</h3>
@@ -590,7 +591,7 @@ drop.addEventListener('drop', e => uploadPhotos(e.dataTransfer.files));
 const SETS = { announcement:'s-ann', announcement_link:'s-annlink', contact_email:'s-mail', line_url:'s-line', music_url:'s-music',
   event_tag:'s-ev-tag', event_title:'s-ev-title', event_slogan:'s-ev-slogan', event_date:'s-ev-date', event_place:'s-ev-place',
   event_target:'s-ev-target', event_content:'s-ev-content', event_start:'s-ev-start', event_note:'s-ev-note', event_signup_url:'s-ev-signup',
-  form_api_url:'s-form-api', event_form_title:'s-form-title', event_form_confirm:'s-form-confirm',
+  form_api_url:'s-form-api', event_form_title:'s-form-title', event_form_lead:'s-form-lead', event_form_confirm:'s-form-confirm',
   broadcast_subject:'b-subject', broadcast_body:'b-body' };
 // 尚未儲存過的活動說明，先顯示目前網頁上的預設文字
 const EV_DEFAULT = {
@@ -666,6 +667,7 @@ async function saveFq(){
     { key:'event_form', value: JSON.stringify(fq.map(q => ({ id:q.id, label:(q.label || '').trim(), type:q.type, required:!!q.required, options:q.options || [] }))) },
     { key:'form_api_url', value: $('s-form-api').value.trim() },
     { key:'event_form_title', value: $('s-form-title').value.trim() },
+    { key:'event_form_lead', value: $('s-form-lead').value.trim() },
     { key:'event_form_confirm', value: $('s-form-confirm').value.trim() }
   ];
   const { error } = await db.from('hg_settings').upsert(rows);

@@ -291,7 +291,7 @@ section{padding-block:104px}
 .course .cbody{padding:22px 22px 24px;display:grid;gap:8px;flex:1;align-content:start}
 .course h3{font-size:22px}
 .course .meta{display:grid;gap:2px;font-size:17px;color:var(--sky-700);font-weight:500}
-.course .sum{font-size:18px;color:var(--muted);line-height:1.7;white-space:pre-line}
+.course .sum{font-size:18px;color:var(--muted);line-height:1.7;white-space:pre-line;display:-webkit-box;-webkit-line-clamp:8;-webkit-box-orient:vertical;overflow:hidden}
 .course .cfoot{padding:0 22px 22px}
 .course .cfoot .btn{width:100%;padding:12px 20px;font-size:18px}
 .empty-state{margin-top:28px;padding:40px 30px;text-align:center;display:grid;gap:12px;justify-items:center}
@@ -1436,7 +1436,7 @@ function applySettings(rows){
     eb.textContent = '我要報名 →'; eb.href = sig; eb.target = '_blank'; eb.rel = 'noopener';
     ['notice', 'form-start', 'form', 'gform'].forEach(id => { const n = document.getElementById(id); if (n) n.hidden = true; });
     document.getElementById('signup-title').textContent = (s.event_title || '說明會') + '｜報名';
-    document.getElementById('signup-lead').textContent = s.event_content || '';
+    document.getElementById('signup-lead').textContent = s.event_form_lead || '';
   }
   // 沒有外部報名連結、但後台有設定題目與程式網址：依題目產生報名表
   let efQs = [];
@@ -1445,7 +1445,7 @@ function applySettings(rows){
   if (!sig && efQs.length && api) {
     ['notice', 'form-start', 'form', 'gform'].forEach(id => { const n = document.getElementById(id); if (n) n.hidden = true; });
     document.getElementById('signup-title').textContent = s.event_form_title || ((s.event_title || '說明會') + '｜報名');
-    document.getElementById('signup-lead').textContent = s.event_content || '';
+    document.getElementById('signup-lead').textContent = s.event_form_lead || '';
     renderDyn(efQs, api, s.event_form_confirm || '', safeUrl(s.line_url || ''));
   }
   if (s.poster_url) { const pu = safeUrl(s.poster_url); if (pu) { document.getElementById('posterImg').src = pu; document.getElementById('posterLink').href = pu; } }
