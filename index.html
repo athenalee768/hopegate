@@ -553,6 +553,26 @@ footer .copy{margin-top:36px;font-size:16px;color:var(--muted)}
 
 .js .fade{opacity:0;transform:translateY(28px);transition:opacity .9s ease,transform .9s cubic-bezier(.2,.8,.2,1)}
 .js .fade.in{opacity:1;transform:none}
+
+/* ===== 課程彈出視窗 ===== */
+.cm-back{position:fixed;inset:0;background:rgba(10,30,60,.55);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);z-index:200;display:grid;place-items:center;padding:20px;overflow-y:auto}
+.cm-box{position:relative;background:#fff;border-radius:22px;max-width:960px;width:100%;max-height:calc(100vh - 40px);overflow-y:auto;box-shadow:0 30px 80px -30px rgba(0,0,0,.6);animation:cmIn .25s ease-out}
+.cm-x{position:absolute;top:12px;right:12px;z-index:3;width:44px;height:44px;border-radius:50%;border:0;background:#fff;color:#1d4f86;font-size:28px;line-height:1;cursor:pointer;box-shadow:0 6px 18px -8px rgba(0,0,0,.5)}
+.cm-x:hover,.cm-x:focus-visible{background:#eaf4ff}
+@keyframes cmIn{from{opacity:0;transform:translateY(16px) scale(.98)}to{opacity:1;transform:none}}
+.cd-card{display:grid;grid-template-columns:1fr 1fr;color:#1b2f4a}
+.cd-img{position:relative;background:#eef6ff}
+.cd-img img{display:block;width:100%;height:auto}
+.cd-tags{position:absolute;top:14px;left:14px;display:flex;gap:8px;flex-wrap:wrap}
+.cd-tag{background:#fff;border-radius:999px;padding:6px 14px;font-size:14px;font-weight:700;color:#1d4f86;box-shadow:0 4px 12px -6px rgba(0,0,0,.4)}
+.cd-tag.gold{background:#ffd257;color:#3b2a00}
+.cd-tag.off{background:#8a8f98;color:#fff}
+.cd-body{padding:36px 34px 32px}
+.cd-title{font-size:28px;margin:0 0 16px;line-height:1.35;font-family:"Noto Serif TC",serif}
+.cd-meta{display:grid;gap:8px;margin:0 0 18px;font-size:17px;color:#34495e;line-height:1.6}
+.cd-sum{white-space:pre-line;font-size:17px;line-height:1.9;color:#2c3e50;margin:0}
+.cd-foot{margin-top:26px}
+@media(max-width:820px){.cd-card{grid-template-columns:1fr}.cd-body{padding:22px}.cd-title{font-size:23px}.cm-x{top:8px;right:8px}}
 </style>
 </head>
 <body>
@@ -1096,6 +1116,12 @@ footer .copy{margin-top:36px;font-size:16px;color:var(--muted)}
 <button type="button" class="music-btn" id="musicBtn" aria-pressed="false" hidden><span class="note" aria-hidden="true">♪</span><span id="musicLabel">播放音樂</span></button>
 <div class="music-box" id="musicBox" hidden></div>
 
+<div class="cm-back" id="cmBack" hidden>
+  <div class="cm-box" role="dialog" aria-modal="true" aria-labelledby="cmTitle">
+    <button class="cm-x" type="button" aria-label="關閉">×</button>
+    <div id="cmBody"></div>
+  </div>
+</div>
 <script src="config.js"></script>
 <script>
 /* Google 表單：每一題的 entry 編號 */
@@ -1173,6 +1199,42 @@ async function sb(table, query){
   return r.json();
 }
 
+function closeCourse(){ document.getElementById('cmBack').hidden = true; document.body.style.overflow = ''; }
+function openCourse(c){
+  const p = PROGRAM[c.program] || PROGRAM.other;
+  const closed = /額滿|結束/.test(c.status || '');
+  const body = document.getElementById('cmBody'); body.textContent = '';
+  const card = el('div', 'cd-card');
+  const im = el('div', 'cd-img');
+  const src = safeUrl(c.image_url || '');
+  if (src) { const img = el('img'); img.src = src; img.alt = c.title || ''; im.appendChild(img); }
+  const tags = el('div', 'cd-tags');
+  tags.appendChild(el('span', 'cd-tag', p.label));
+  if (c.status) tags.appendChild(el('span', 'cd-tag ' + (closed ? 'off' : 'gold'), c.status));
+  im.appendChild(tags); card.appendChild(im);
+  const b = el('div', 'cd-body');
+  const h = el('h2', 'cd-title', c.title || ''); h.id = 'cmTitle'; b.appendChild(h);
+  const meta = el('div', 'cd-meta');
+  if (c.date_text) meta.appendChild(el('div', '', '日期｜' + c.date_text));
+  if (c.location) meta.appendChild(el('div', '', '地點｜' + c.location));
+  if (meta.childNodes.length) b.appendChild(meta);
+  if (c.summary) b.appendChild(el('p', 'cd-sum', c.summary));
+  const f = el('div', 'cd-foot');
+  if (!closed) {
+    const link = safeUrl(c.signup_url || '');
+    const a = el('a', 'btn btn-gold', link ? '我要報名 →' : '洽詢與報名 →');
+    if (link) { a.href = link; a.target = '_blank'; a.rel = 'noopener'; }
+    else { a.href = '#signup'; a.addEventListener('click', e => { e.preventDefault(); closeCourse(); document.getElementById('signup').scrollIntoView({ behavior: 'smooth' }); }); }
+    f.appendChild(a);
+  }
+  b.appendChild(f); card.appendChild(b); body.appendChild(card);
+  document.getElementById('cmBack').hidden = false;
+  document.body.style.overflow = 'hidden';
+  document.querySelector('#cmBack .cm-x').focus();
+}
+document.getElementById('cmBack').addEventListener('click', e => { if (e.target.id === 'cmBack' || e.target.classList.contains('cm-x')) closeCourse(); });
+document.addEventListener('keydown', e => { if (e.key === 'Escape' && !document.getElementById('cmBack').hidden) closeCourse(); });
+
 function renderCourses(list){
   const box = document.getElementById('courseList'), empty = document.getElementById('courseEmpty'), filters = document.getElementById('filters');
   box.textContent = '';
@@ -1199,6 +1261,7 @@ function renderCourses(list){
     const f = el('div', 'cfoot');
     const det = el('a', 'btn btn-ghost', '看詳情');
     det.href = 'course.html?id=' + encodeURIComponent(c.id);
+    det.addEventListener('click', e => { if (e.metaKey || e.ctrlKey || e.shiftKey) return; e.preventDefault(); openCourse(c); });
     f.appendChild(det);
     if (!closed) {
       const link = safeUrl(c.signup_url || '');
@@ -1208,6 +1271,8 @@ function renderCourses(list){
       f.appendChild(a);
     }
     card.appendChild(f);
+    card.style.cursor = 'pointer';
+    card.addEventListener('click', e => { if (e.target.closest('a,button')) return; openCourse(c); });
     box.appendChild(card);
   });
   observe(box.querySelectorAll('.fade'));
