@@ -251,6 +251,7 @@ table.su td.hope{max-width:260px;white-space:pre-line}
           <div class="field"><label for="s-line">LINE 社群邀請連結</label><input id="s-line" type="url" placeholder="https://line.me/ti/g2/…"><span class="hint">填入後，網站 QR Code 旁會出現「用手機直接加入」按鈕。</span></div>
         </div>
         <div class="field"><label for="s-music">背景音樂（YouTube 連結）</label><input id="s-music" type="url" placeholder="https://youtu.be/…"><span class="hint">貼上 YouTube 影片連結，網站右下角會出現「播放音樂」按鈕。清空後儲存＝不放音樂。</span></div>
+        <div class="field"><label for="s-ev-signup">活動報名連結（說明會區塊的按鈕）</label><input id="s-ev-signup" type="url" placeholder="https://forms.gle/…"><span class="hint">填入後，首頁說明會的按鈕會直接連到這個報名表，並隱藏婦女 AI 的注意事項與報名表。清空＝恢復婦女 AI 報名表。</span></div>
         <h3 style="margin:22px 0 8px;font-size:17px">活動說明（首頁海報旁的文字）</h3>
         <span class="hint" style="display:block;margin-bottom:12px">要辦其他活動，改這裡的文字即可。欄位留空，首頁就不顯示該項。</span>
         <div class="grid2">
@@ -516,7 +517,7 @@ drop.addEventListener('drop', e => uploadPhotos(e.dataTransfer.files));
 /* ===== 設定 ===== */
 const SETS = { announcement:'s-ann', announcement_link:'s-annlink', contact_email:'s-mail', line_url:'s-line', music_url:'s-music',
   event_tag:'s-ev-tag', event_title:'s-ev-title', event_slogan:'s-ev-slogan', event_date:'s-ev-date', event_place:'s-ev-place',
-  event_target:'s-ev-target', event_content:'s-ev-content', event_start:'s-ev-start', event_note:'s-ev-note' };
+  event_target:'s-ev-target', event_content:'s-ev-content', event_start:'s-ev-start', event_note:'s-ev-note', event_signup_url:'s-ev-signup' };
 // 尚未儲存過的活動說明，先顯示目前網頁上的預設文字
 const EV_DEFAULT = {
   event_tag:'公益免費', event_title:'婦女 AI 培力賦能講座・補助說明會', event_slogan:'一起學 AI，開啟新的可能',
@@ -545,7 +546,7 @@ $('s-poster-clear').onclick = () => { posterFile = null; posterUrl = ''; $('s-po
 
 $('setForm').addEventListener('submit', async e => {
   e.preventDefault();
-  for (const k of ['announcement_link','line_url','music_url']) { const v = $(SETS[k]).value.trim(); if (v && !/^https?:\/\//i.test(v)) { toast('連結要以 https:// 開頭', true); $(SETS[k]).focus(); return; } }
+  for (const k of ['announcement_link','line_url','music_url','event_signup_url']) { const v = $(SETS[k]).value.trim(); if (v && !/^https?:\/\//i.test(v)) { toast('連結要以 https:// 開頭', true); $(SETS[k]).focus(); return; } }
   const btn = $('s-save'); btn.disabled = true; btn.textContent = '儲存中…';
   if (posterFile) {
     try { posterUrl = await upload(posterFile, 'settings'); posterFile = null; }

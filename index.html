@@ -1007,7 +1007,7 @@ footer .copy{margin-top:36px;font-size:16px;color:var(--muted)}
 
 <section class="sky" id="signup">
   <div class="wrap">
-    <div class="signup-head fade">
+    <div class="signup-head fade" id="signup-head">
       <div class="badge">踏出改變的第一步</div>
       <h2>婦女 AI 培力賦能講座・補助說明會｜說明會報名表</h2>
       <p>零基礎也能開始！歡迎對 AI 學習、二度就業、職涯轉型或補助課程有興趣的女性報名說明會。</p>
@@ -1026,7 +1026,7 @@ footer .copy{margin-top:36px;font-size:16px;color:var(--muted)}
           <div><dt>開課</dt><dd id="ev-start">12 月中旬</dd></div>
         </dl>
         <p class="fine" id="ev-note">補助資格及金額依主管機關公告與審核結果為準<br>主辦｜社團法人中華希望之門文化協會　協辦｜台灣手機教學協會</p>
-        <a class="btn btn-gold" href="#notice">看報名資格並填寫 ↓</a>
+        <a class="btn btn-gold" id="ev-btn" href="#notice">看報名資格並填寫 ↓</a>
       </div>
     </div>
     <div class="notice fade" id="notice">
@@ -1312,6 +1312,13 @@ function applySettings(rows){
     const box = n.tagName === 'DD' ? n.parentElement : n;
     box.style.display = s[k] ? '' : 'none';
   });
+  // 有設定「活動報名連結」時：按鈕直接連到該活動的報名表，並隱藏婦女 AI 專用的注意事項與報名表
+  const sig = safeUrl(s.event_signup_url || '');
+  if (sig) {
+    const eb = document.getElementById('ev-btn');
+    eb.textContent = '我要報名 →'; eb.href = sig; eb.target = '_blank'; eb.rel = 'noopener';
+    ['signup-head', 'notice', 'form-start', 'form', 'gform'].forEach(id => { const n = document.getElementById(id); if (n) n.hidden = true; });
+  }
   if (s.poster_url) { const pu = safeUrl(s.poster_url); if (pu) { document.getElementById('posterImg').src = pu; document.getElementById('posterLink').href = pu; } }
   if ('music_url' in s) setupMusic(s.music_url);
   const line = safeUrl(s.line_url || '');
