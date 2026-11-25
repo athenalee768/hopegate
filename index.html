@@ -466,6 +466,7 @@ section{padding-block:104px}
 .event{display:grid;grid-template-columns:minmax(0,640px) 1fr;gap:36px;max-width:1280px;margin:0 auto 34px;align-items:start}
 .poster{display:block;border-radius:var(--r);overflow:hidden;border:4px solid #fff;box-shadow:0 24px 60px -28px rgba(27,47,74,.6)}
 .poster img{width:100%;height:auto}
+.poster[hidden]{display:none}
 .event-info{padding:40px 38px;display:grid;gap:16px;align-content:start}
 .event-info .tagx{justify-self:start;font-family:var(--serif);font-weight:900;font-size:21px;padding:8px 22px;border-radius:999px;background:linear-gradient(180deg,#ffd257,var(--gold));color:#3b2a00}
 .event-info h3{font-size:clamp(28px,3vw,40px);line-height:1.35;font-weight:900}
@@ -1030,7 +1031,7 @@ footer .copy{margin-top:36px;font-size:16px;color:var(--muted)}
       <p id="signup-lead">零基礎也能開始！歡迎對 AI 學習、二度就業、職涯轉型或補助課程有興趣的女性報名說明會。</p>
     </div>
     <div class="event fade">
-      <a class="poster" id="posterLink" href="assets/poster-1102.jpg" target="_blank" rel="noopener"><img id="posterImg" src="assets/poster-1102.jpg" alt="活動海報" loading="lazy"></a>
+      <a class="poster" id="posterLink" href="#" target="_blank" rel="noopener" hidden><img id="posterImg" alt="活動海報" loading="lazy"></a>
       <div class="event-info glass">
         <span class="tagx" id="ev-tag">公益免費</span>
         <h3 id="ev-title">婦女 AI 培力<br>賦能講座・補助說明會</h3>
@@ -1448,7 +1449,9 @@ function applySettings(rows){
     document.getElementById('signup-lead').textContent = s.event_form_lead || '';
     renderDyn(efQs, api, s.event_form_confirm || '', safeUrl(s.line_url || ''));
   }
-  if (s.poster_url) { const pu = safeUrl(s.poster_url); if (pu) { document.getElementById('posterImg').src = pu; document.getElementById('posterLink').href = pu; } }
+  // 海報預設隱藏，只有後台設定了海報才顯示（避免重新整理時先閃出舊海報）
+  const pu = safeUrl(s.poster_url || '');
+  if (pu) { document.getElementById('posterImg').src = pu; document.getElementById('posterLink').href = pu; document.getElementById('posterLink').hidden = false; }
   if ('music_url' in s) setupMusic(s.music_url);
   const line = safeUrl(s.line_url || '');
   if (line) { const b = document.getElementById('lineBtn'); b.href = line; b.hidden = false; }
