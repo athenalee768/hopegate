@@ -173,7 +173,20 @@ table.su td.hope{max-width:260px;white-space:pre-line}
           <button class="btn btn-gold btn-sm" type="button" id="suCsv">下載 Excel 檔（CSV）</button>
         </div>
       </div>
-      <div class="tbl-wrap"><table class="su"><thead><tr><th>送出時間</th><th>姓名</th><th>電話</th><th>LINE</th><th>Email</th><th>縣市</th><th>年齡</th><th>狀態</th><th>AI 程度</th><th>想學</th><th>期待</th><th>推薦人</th><th></th></tr></thead><tbody id="suRows"></tbody></table></div>
+      <div style="border:1px solid #e2e8f0;border-radius:12px;padding:16px;margin-bottom:18px">
+        <h3 style="margin:0 0 4px">群發通知</h3>
+        <p class="hint" style="margin:0 0 12px">寄給目前報名表中所有填寫信箱的報名者。主旨與內容會存在後台，下次可直接修改。</p>
+        <div class="field"><label for="b-subject">主旨</label><input id="b-subject" type="text"></div>
+        <div class="field"><label for="b-body">內容</label><textarea id="b-body" rows="10"></textarea></div>
+        <div class="field"><label for="b-test">測試信寄到</label><input id="b-test" type="email" value="hopegate999@gmail.com"></div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <button class="btn btn-ghost btn-sm" type="button" id="bSave">儲存群發內容</button>
+          <button class="btn btn-ghost btn-sm" type="button" id="bPreview">預覽收件人數</button>
+          <button class="btn btn-blue btn-sm" type="button" id="bTest">寄測試信</button>
+          <button class="btn btn-gold btn-sm" type="button" id="bSend">正式群發</button>
+        </div>
+      </div>
+      <div class="tbl-wrap"><table class="su"><thead><tr><th>送出時間</th><th>活動</th><th>Email</th><th>報名內容</th><th></th></tr></thead><tbody id="suRows"></tbody></table></div>
       <p class="empty" id="suEmpty" hidden>目前還沒有報名資料。</p>
     </section>
 
@@ -384,7 +397,8 @@ document.querySelectorAll('.tabs button').forEach(b => b.addEventListener('click
 let signups = [];
 const fmtTime = t => { try { return new Date(t).toLocaleString('zh-TW', { hour12:false }); } catch(e) { return t; } };
 async function loadSignups(){
-  const { data, error } = await db.from('hg_signups').select('*').order('created_at', { ascending:false });
+  // 只顯示新版報名（有活動名稱的資料），舊的婦女 AI 報名資料保留在資料庫但不顯示
+  const { data, error } = await db.from('hg_signups').select('*').not('event', 'is', null).order('created_at', { ascending:false });
   if (error) { $('suRows').textContent = ''; $('suEmpty').hidden = false; $('suEmpty').textContent = /relation|does not exist|schema cache/i.test(error.message) ? '報名名單資料表尚未建立，請先在 Supabase 執行 signups.sql。' : errText(error); return; }
   signups = data || []; renderSignups();
 }
@@ -394,9 +408,11 @@ function renderSignups(){
   $('suEmpty').hidden = signups.length > 0; $('suEmpty').textContent = '目前還沒有報名資料。';
   signups.forEach(r => {
     const tr = el('tr');
-    [fmtTime(r.created_at), r.name, r.phone, r.line, r.email, r.city, r.age, r.status, r.level, r.topics].forEach(v => tr.appendChild(el('td', '', v || '—')));
-    tr.appendChild(el('td', 'hope', r.hope || '—'));
-    tr.appendChild(el('td', '', r.referrer || '—'));
+    tr.appendChild(el('td', '', fmtTime(r.created_at)));
+    tr.appendChild(el('td', '', r.event || '—'));
+    tr.appendChild(el('td', '', r.email || '—'));
+    const td2 = el('td', '', answerText(r, '\n')); td2.style.whiteSpace = 'pre-line';
+    tr.appendChild(td2);
     const td = el('td'); const del = el('button', 'btn btn-danger btn-sm', '刪除'); del.type = 'button';
     armDelete(del, async () => { const { error } = await db.from('hg_signups').delete().eq('id', r.id); if (error) { toast(errText(error), true); return; } toast('已刪除'); loadSignups(); });
     td.appendChild(del); tr.appendChild(td); tb.appendChild(tr);
@@ -405,13 +421,51 @@ function renderSignups(){
 $('suReload').onclick = () => { loadSignups(); toast('已更新名單'); };
 $('suCsv').onclick = () => {
   if (!signups.length) { toast('目前沒有資料可以下載', true); return; }
-  const head = ['送出時間','姓名','電話','LINE','Email','縣市','年齡','狀態','AI 程度','想學','期待','推薦人'];
+  const head = ['送出時間','活動','Email','報名內容'];
   const q = v => '"' + String(v == null ? '' : v).replace(/"/g, '""') + '"';
-  const lines = [head.map(q).join(',')].concat(signups.map(r => [fmtTime(r.created_at), r.name, r.phone, r.line, r.email, r.city, r.age, r.status, r.level, r.topics, r.hope, r.referrer].map(q).join(',')));
+  const lines = [head.map(q).join(',')].concat(signups.map(r => [fmtTime(r.created_at), r.event, r.email, answerText(r, ' ｜ ')].map(q).join(',')));
   const blob = new Blob(['\ufeff' + lines.join('\r\n')], { type:'text/csv;charset=utf-8' });
   const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
   a.download = '希望之門報名名單_' + new Date().toISOString().slice(0,10) + '.csv';
   document.body.appendChild(a); a.click(); setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 500);
+};
+
+/* 把一筆報名的題目與答案組成文字 */
+function answerText(r, sep){
+  const a = r.answers || {};
+  return Object.keys(a).map(k => k + '：' + (Array.isArray(a[k]) ? a[k].join('、') : (a[k] || '—'))).join(sep) || '—';
+}
+
+/* ===== 群發通知 ===== */
+async function bcCall(mode){
+  const api = $('s-form-api').value.trim();
+  if (!api) { toast('請先在「說明會報名表」填寫報名表程式網址', true); return null; }
+  const secret = window.prompt('請輸入報名表程式的管理密碼（SECRET）：');
+  if (!secret) return null;
+  const payload = { action:'broadcast', mode, secret, subject: $('b-subject').value.trim(), body: $('b-body').value, testEmail: $('b-test').value.trim() };
+  try {
+    const res = await fetch(api, { method:'POST', headers:{ 'Content-Type':'text/plain;charset=utf-8' }, body: JSON.stringify(payload) });
+    const out = await res.json();
+    if (!out.ok) throw new Error(out.error || '操作失敗');
+    return out;
+  } catch (err) { toast(err.message || '操作失敗', true); return null; }
+}
+$('bSave').onclick = async () => {
+  const { error } = await db.from('hg_settings').upsert([
+    { key:'broadcast_subject', value: $('b-subject').value.trim() },
+    { key:'broadcast_body', value: $('b-body').value }
+  ]);
+  if (error) toast(errText(error), true); else toast('群發內容已儲存');
+};
+$('bPreview').onclick = async () => { const out = await bcCall('preview'); if (out) toast('目前收件人共 ' + out.count + ' 位'); };
+$('bTest').onclick = async () => {
+  if (!$('b-subject').value.trim() || !$('b-body').value.trim()) { toast('請先填寫主旨與內容', true); return; }
+  const out = await bcCall('test'); if (out) toast('測試信已寄到 ' + $('b-test').value.trim());
+};
+$('bSend').onclick = async () => {
+  if (!$('b-subject').value.trim() || !$('b-body').value.trim()) { toast('請先填寫主旨與內容', true); return; }
+  if (!window.confirm('確定要寄給所有報名者嗎？寄出後無法撤回。')) return;
+  const out = await bcCall('send'); if (out) toast('已寄出 ' + out.count + ' 封');
 };
 
 /* ===== 課程 ===== */
@@ -536,7 +590,8 @@ drop.addEventListener('drop', e => uploadPhotos(e.dataTransfer.files));
 const SETS = { announcement:'s-ann', announcement_link:'s-annlink', contact_email:'s-mail', line_url:'s-line', music_url:'s-music',
   event_tag:'s-ev-tag', event_title:'s-ev-title', event_slogan:'s-ev-slogan', event_date:'s-ev-date', event_place:'s-ev-place',
   event_target:'s-ev-target', event_content:'s-ev-content', event_start:'s-ev-start', event_note:'s-ev-note', event_signup_url:'s-ev-signup',
-  form_api_url:'s-form-api', event_form_title:'s-form-title', event_form_confirm:'s-form-confirm' };
+  form_api_url:'s-form-api', event_form_title:'s-form-title', event_form_confirm:'s-form-confirm',
+  broadcast_subject:'b-subject', broadcast_body:'b-body' };
 // 尚未儲存過的活動說明，先顯示目前網頁上的預設文字
 const EV_DEFAULT = {
   event_tag:'公益免費', event_title:'婦女 AI 培力賦能講座・補助說明會', event_slogan:'一起學 AI，開啟新的可能',

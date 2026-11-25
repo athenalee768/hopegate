@@ -1383,11 +1383,24 @@ async function submitDyn(e){
     const res = await fetch(api, { method:'POST', headers:{ 'Content-Type':'text/plain;charset=utf-8' }, body: JSON.stringify({ action:'submit', answers, email }) });
     const out = await res.json();
     if (!out.ok) throw new Error(out.error || '送出失敗');
+    saveDynSignup(qs, answers, email);
     showDynOk(confirmText, lineUrl);
   } catch (err) {
     msg.textContent = (err && /請填寫|不正確|尚未/.test(err.message || '')) ? err.message : '送出失敗，請稍後再試，或直接聯絡協會。';
     btn.disabled = false; btn.textContent = '送出報名';
   }
+}
+/* 同時把新報名存進後台「報名名單」（有活動名稱，舊資料不會被影響） */
+function saveDynSignup(qs, answers, email){
+  try {
+    if (!CFG.supabaseUrl || !CFG.supabaseAnonKey) return;
+    const labeled = {};
+    qs.forEach(q => { labeled[q.label] = answers[q.id]; });
+    const row = { event: (document.getElementById('signup-title').textContent || '').slice(0, 200), answers: labeled, email: email || null };
+    const h = { apikey: CFG.supabaseAnonKey, 'Content-Type': 'application/json', Prefer: 'return=minimal' };
+    if (/^eyJ/.test(CFG.supabaseAnonKey)) h.Authorization = 'Bearer ' + CFG.supabaseAnonKey;
+    fetch(CFG.supabaseUrl.replace(/\/$/, '') + '/rest/v1/hg_signups', { method: 'POST', headers: h, body: JSON.stringify(row), keepalive: true }).catch(() => {});
+  } catch (e) { /* 後台存檔失敗不影響報名結果 */ }
 }
 function showDynOk(confirmText, lineUrl){
   const ok = document.getElementById('dynOk'); ok.textContent = '';
